@@ -282,12 +282,12 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
 - Other TCP scans:
   
-    	-- -sN (null), -sF (fin), -sX (Xmas)
+    	-> -sN (null), -sF (fin), -sX (Xmas)
         		->Similarites: if port open RST packet is received otherwise reported as open|filtered
   
-    	-- -sM (Maimon scan)
+    	-> -sM (Maimon scan)
   
-    	-- -sA (ACK scan)
+    	-> -sA (ACK scan)
 
 - UDP Scan:
   
@@ -295,7 +295,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
 - Fine-Tuning:
   
-   		 -- -p<1-50> (set ranges), -F (100 most common ports), -T<0-5> (controlling scan timing), --min-rate<number> and --max-rate<number>
+   		 -> -p<1-50> (set ranges), -F (100 most common ports), -T<0-5> (controlling scan timing), --min-rate<number> and --max-rate<number>
     
 - Spoofing and Decoys:
   
