@@ -117,6 +117,10 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - MsfVenom
 - Multi/Handler
 
+### Privilege Escalation
+- Linux Privelege Escalation
+- Common commands to navigate and understand the compromised system
+
   
 
 ---
@@ -739,6 +743,72 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
   	- this staged payload requires different tabs to be open, one for connecting to the target machine using ssh or any known methods, two for msfvenom to generate payload and host a python server and third one to listen to the upcoming payload that msfvenom created that was ran on the target machine.
 
 * This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and execution of the file is also different.
+
+# PRIVILEGE ESCALATION:
+
+- going from lower permission to a higher permission.
+
+  ## Linux Privilege Escalation
+
+  - Enumeration:
+
+	- Basic Commands
+
+			$ hostname
+
+			$ uname -a
+
+			$ /proc/version
+
+			$ /etc/issue
+
+			$ ps
+
+			$ env
+
+			$ /etc/passwd
+
+			$ cat /etc/passwd | cut -d ":" -f 1
+
+			$ netstat-a,-at,-au,-l,-s,-i,-ano
+ 
+  - Find Commands:
+
+			$ find . -name nischal.txt (find this file in the current directory)
+
+			$ find /home -name nischal.txt (find file in home dir)
+
+			$ find / -type d -name config (dictory named config under"/")
+
+			$ find / -type f -perm 0777 (files with 777 permissions)
+
+			$ find / -perm a=x (executable files)
+
+			$ find /home -user nischal (all files for user "nischal" under "/home"
+
+			$ find / -mtime 10 (modifies in the last 10 days)
+
+			$ find / -atime 10 (accessed in the past 10 days)
+
+			$ find / -cmin -60 (changed in the last 60 mins)
+
+			$ find / -amin -60 (accessed withing the last 60 mins)
+
+			$ fine / -size 50M (with size of 50MB)
+
+			$ find / -writable -type d 2>/dev/null (world-writable folder)
+			-> 2>/dev/null redirects error to "/dev/null" so we can get cleaner output
+
+			$ find / -perm -333 -type d 2>/dev/null (world-writable folder)
+
+			$ find / -perm -o x -type d 2>/dev/null (world-executable folders)
+
+			$ find / -name python* (supported languages)
+
+			$ find / -perm -u=s -type f 2>dev/null (files with the SUID bit)
+    		-> this allows us to run fule with a higher privilege than the current level we end up with while getting the linux shell)
+
+			
 
 
 # REFERENCES
