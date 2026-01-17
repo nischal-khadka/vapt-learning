@@ -88,7 +88,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Hydra Usage
 - Defensive Measures
 
-### 13. Socat
+### 13. Reverse and Bind Shells
 - Reverse Shells
 - Bind Shells
 - Linux Targets
@@ -100,25 +100,35 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Linux Bind Shell
 - Windows Reverse Shell
 
-### 15. MSFVenom
-- Payload Structure
-- Staged vs Stageless Payloads
-- Multi/Handler Usage
-
-### 16. Web Shells
+### 15. Web Shells
 - PHP Web Shells
 - Remote Command Execution
 - Windows PowerShell Payload Usage
 
+### 16. Vulnerability Databases
+- Common Vulnerabilites
+- Exploit-DB
+
+### 17. MetaSploit
+- Components
+- Modules
+- Types of Payload
+- msfconsole
+- Meterpreter
+- MsfVenom
+- Multi/Handler
+
+  
+
 ---
 
-# File Inclusion:
+# FILE INCLUSION:
 
 - Path Traversal:
   
-		$ http://webapp.thm/get.php?file=../../../../boot.ini
+		$ http://webapp.com/get.php?file=../../../../boot.ini
   
-		$ http://webapp.thm/get.php?file=../../../../windows/win.ini
+		$ http://webapp.org/get.php?file=../../../../windows/win.ini
 
 - Common OS files location:
   
@@ -169,9 +179,9 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 	
 	$ <sscriptcript>alert('THM');</sscriptcript> (bypassing filters)
 	
-	$ jaVasCript:/*-/*`/*\`/*'/*"/**/(/* */onerror=alert('THM') )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\x3csVg/<sVg/oNloAd=alert('hi!')//>\x3e (XSS polyglots 	all in one type sh)
+	$ jaVasCript:/*-/*`/*\`/*'/*"/**/(/* */onerror=alert('THM') )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\x3csVg/<sVg/oNloAd=alert('hi!')//>\x3e (XSS polyglots all in one type sh)
 
-# SQLi Payloads:
+# SQLi PAYLOADS:
 
 - Blind SQLi:
   
@@ -222,6 +232,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Also has extensions to enhance the framework's functionality.
 
 # Reconnaissance:
+
 - Passive Reconnaissance: whois, nslookup, dig, shodan.io
   
 - Active Reconnaissance: ping, traceroute, telnet, nc
@@ -254,7 +265,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
   
     			-> First row (Source port number and Destination Port number) each allocating 16 bits (2 bytes)
   
-    			-> Second row Sequence number and third row Acknowledgement Number
+    			-> Second row is Sequence number and third row is Acknowledgement Number
   
     			-> Total six rows. Each row contains 32 bit (4 bytes) so total 6 rows equals to 24 bytes
   
@@ -577,7 +588,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
  		 -> Nessus (primarily used for automated vulnerability research)
 
-  		-> Metasploit ( auxiliary module for scanning known signatures of a vulnerability)
+  		 -> Metasploit ( auxiliary module for scanning known signatures of a vulnerability)
 
 - Common Vulnerabilites:
 
@@ -585,9 +596,9 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
   		-> Broken Access Control
 
- 		 -> Insecure Deserialization
+ 		-> Insecure Deserialization
 
- 		 -> Injection
+ 		-> Injection
 
 # METASPLOIT:
 
@@ -731,6 +742,19 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
   	- this staged payload requires different tabs to be open, one for connecting to the target machine using ssh or any known methods, two for msfvenom to generate payload and host a python server and third one to listen to the upcoming payload that msfvenom created that was ran on the target machine.
 
 * This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and execution of the file is also different.
+
+
+# REFERENCES
+
+OFFSEC’s Exploit Database archive. https://www.exploit-db.com/
+
+OFFSEC’s Exploit Database archive. https://www.exploit-db.com/google-hacking-database
+
+Swisskyrepo. PayloadsAllTheThings/Methodology and Resources/Reverse Shell Cheatsheet.md at master · swisskyrepo/PayloadsAllTheThings. GitHub. https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md
+
+Danielmiessler. GitHub - danielmiessler/SecLists  https://github.com/danielmiessler/SecLists
+
+TryHackMe | Cyber Security Training. (2026). TryHackMe. https://tryhackme.com/paths/JrPenetrationTester
  
      
 
