@@ -1,1 +1,0 @@
-Wordlists used during practice.
