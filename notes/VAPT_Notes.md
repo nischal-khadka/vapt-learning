@@ -430,7 +430,6 @@ Without this, XSS and SQLi won’t fully click.
 - Other TCP scans:
   
 	- -sN (null), -sF (fin), -sX (Xmas)
-        		->Similarites: if port open RST packet is received otherwise reported as open|filtered
   
   	- -sM (Maimon scan)
   
@@ -514,7 +513,7 @@ Without this, XSS and SQLi won’t fully click.
   
 - MITM attack. Safe
 
-## Secure Shell (SSL):
+## Secure Shell (SSH):
 - Created to provide a secure way for remote system administration.
   
 - Also uses cryptography
