@@ -1744,6 +1744,12 @@ Swisskyrepo. PayloadsAllTheThings/Methodology and Resources/Reverse Shell Cheats
 Danielmiessler. GitHub - danielmiessler/SecLists  https://github.com/danielmiessler/SecLists
 
 TryHackMe | Cyber Security Training. (2026). TryHackMe. https://tryhackme.com/paths/JrPenetrationTester
+
+GTFOBins. https://gtfobins.github.io/
+
+Rebootuser. GitHub - rebootuser/LinEnum: Scripted Local Linux Enumeration & Privilege Escalation Checks. GitHub. https://github.com/rebootuser/LinEnum
+
+Gtworek. GitHub - gtworek/Priv2Admin: Exploitation paths allowing you to (mis)use the Windows Privileges to elevate your rights within the OS. GitHub. https://github.com/gtworek/Priv2Admin
  
      
 
